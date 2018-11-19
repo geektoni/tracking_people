@@ -53,6 +53,7 @@ Mat FindPeople::find_people(const Mat input)
 	return fg;
 }
 
+// https://docs.opencv.org/2.4/doc/tutorials/imgproc/shapedescriptors/bounding_rects_circles/bounding_rects_circles.html
 vector<Rect> FindPeople::generate_bounding_boxes(const vector<vector<Point>> & contours)
 {
 	vector<vector<Point>> contours_poly( contours.size() );

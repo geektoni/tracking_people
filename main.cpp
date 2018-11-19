@@ -42,11 +42,14 @@ int main(int argc, char ** argv) {
 		// Extract people
 		Mat fg = bg_rem.find_people(frame);
 
+		// Find contours and boundin boxes
+		Mat drawing = bg_rem.find_contours(fg, true);
+
+		// Print everything on screen
 		namedWindow("Threshold",WINDOW_NORMAL);
 		resizeWindow("Threshold", 600, 600);
 		imshow("Threshold", fg);
 
-		Mat drawing = bg_rem.find_contours(fg, true);
 		namedWindow("Contours",WINDOW_NORMAL);
 		resizeWindow("Contours", 600, 600);
 		imshow("Contours", drawing);
