@@ -46,7 +46,7 @@ int main(int argc, char ** argv) {
 		resizeWindow("Threshold", 600, 600);
 		imshow("Threshold", fg);
 
-		Mat drawing = bg_rem.find_contours(fg);
+		Mat drawing = bg_rem.find_contours(fg, true);
 		namedWindow("Contours",WINDOW_NORMAL);
 		resizeWindow("Contours", 600, 600);
 		imshow("Contours", drawing);

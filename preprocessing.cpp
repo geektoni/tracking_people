@@ -53,32 +53,61 @@ Mat FindPeople::find_people(const Mat input)
 	return fg;
 }
 
-cv::Mat FindPeople::find_contours(const cv::Mat input)
+vector<Rect> FindPeople::generate_bounding_boxes(const vector<vector<Point>> & contours)
 {
-	vector<vector<Point> > contours;
-	vector<Vec4i> hierarchy;
-	findContours(input, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
+	vector<vector<Point>> contours_poly( contours.size() );
+	vector<Rect> boundRect( contours.size() );
+	vector<Point2f> center( contours.size() );
 
-	/// Draw contours and count possible "peoples"
-	int total_people_count = 0;
-	Mat drawing = Mat::zeros( input.size(), CV_8UC3 );
-	for( int i = 0; i< contours.size(); i++ )
+	for( int i = 0; i < contours.size(); i++ )
 	{
+		approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
+		boundRect[i] = boundingRect( Mat(contours_poly[i]) );
+	}
+
+	return boundRect;
+}
+
+cv::Mat FindPeople::find_contours(const cv::Mat input, bool use_bounding_box) {
+
+	vector<vector<Point>> contours;
+	vector<Vec4i> hierarchy;
+	findContours(input, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+
+	// If we want bounding boxes instead of just the contours
+	vector<Rect> boundRect(contours.size());
+	if (use_bounding_box) {
+		boundRect = this->generate_bounding_boxes(contours);
+	}
+
+	// Draw contours and count possible "peoples"
+	int total_people_count = 0;
+	Mat drawing = Mat::zeros(input.size(), CV_8UC3);
+	for (int i = 0; i < contours.size(); i++) {
 		// Skip the contour if it is too small
-		if (contourArea(contours[i]) < 400)
-		{
+		if (contourArea(contours[i]) < 400) {
 			continue;
 		}
 
-		Scalar color = Scalar( 0,0,255);
-		drawContours(drawing, contours, i, color, 2, 8, hierarchy, 0, Point() );
+		Scalar color_bbox = Scalar(0, 0, 255);
+		Scalar color_cont = Scalar(255,255,255);
+
+		// If we want the bounding boxes then we will use them
+		if (use_bounding_box) {
+			rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), color_bbox, 2, 8, 0);
+		}
+
+		// Draw the actual contours
+		drawContours(drawing, contours, i, color_cont, 2, 8, hierarchy, 0, Point());
+
+		// Increase the people counter;
 		total_people_count++;
 	}
 
 	// Add counter showing how many people are in the image
 	std::string total_people = "People Count: " + std::to_string(total_people_count);
-	rectangle(drawing, Point(0, 0), Point(300, 70), (255,255,255), 5);
-	putText(drawing, total_people, Point(10,50), FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2);
+	rectangle(drawing, Point(0, 0), Point(300, 70), (255, 255, 255), 5);
+	putText(drawing, total_people, Point(10, 50), FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2);
 
 	return drawing;
 }

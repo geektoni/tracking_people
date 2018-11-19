@@ -27,7 +27,7 @@ public:
 	 * @param input a black and white frame
 	 * @return a frame with red contours
 	 */
-	cv::Mat find_contours(const cv::Mat input);
+	cv::Mat find_contours(const cv::Mat input, bool use_bounding_box=false);
 
 private:
 
@@ -39,6 +39,7 @@ private:
  	*/
 	cv::Mat shadow_removal(const cv::Mat frame);
 
+	cv::vector<cv::Rect> generate_bounding_boxes(const cv::vector<cv::vector<cv::Point>> & contours);
 
 	cv::Ptr<cv::BackgroundSubtractor> pGMM;
 	int thresh = 128;
