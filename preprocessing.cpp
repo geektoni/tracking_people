@@ -58,16 +58,24 @@ cv::Mat FindPeople::find_contours(const cv::Mat input)
 	vector<Vec4i> hierarchy;
 	findContours(input, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
 
-	/// Draw contours
+	/// Draw contours and count possible "peoples"
+	int total_people_count = 0;
 	Mat drawing = Mat::zeros( input.size(), CV_8UC3 );
 	for( int i = 0; i< contours.size(); i++ )
 	{
+		// Skip the contour if it is too small
+		if (contourArea(contours[i]) < 400)
+		{
+			continue;
+		}
+
 		Scalar color = Scalar( 0,0,255);
 		drawContours(drawing, contours, i, color, 2, 8, hierarchy, 0, Point() );
+		total_people_count++;
 	}
 
 	// Add counter showing how many people are in the image
-	std::string total_people = "People Count: " + std::to_string(contours.size());
+	std::string total_people = "People Count: " + std::to_string(total_people_count);
 	rectangle(drawing, Point(0, 0), Point(300, 70), (255,255,255), 5);
 	putText(drawing, total_people, Point(10,50), FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2);
 
