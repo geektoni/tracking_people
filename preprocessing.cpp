@@ -69,7 +69,7 @@ vector<Rect> FindPeople::generate_bounding_boxes(const vector<vector<Point>> & c
 	return boundRect;
 }
 
-cv::Mat FindPeople::find_contours(const cv::Mat input, bool use_bounding_box) {
+cv::Mat FindPeople::find_contours(const cv::Mat input, const cv::Mat original_input,  bool use_bounding_box) {
 
 	vector<vector<Point>> contours;
 	vector<Vec4i> hierarchy;
@@ -83,7 +83,8 @@ cv::Mat FindPeople::find_contours(const cv::Mat input, bool use_bounding_box) {
 
 	// Draw contours and count possible "peoples"
 	int total_people_count = 0;
-	Mat drawing = Mat::zeros(input.size(), CV_8UC3);
+	Mat drawing; original_input.copyTo(drawing);
+
 	for (int i = 0; i < contours.size(); i++) {
 		// Skip the contour if it is too small
 		if (contourArea(contours[i]) < 400) {

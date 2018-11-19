@@ -27,7 +27,7 @@ public:
 	 * @param input a black and white frame
 	 * @return a frame with red contours
 	 */
-	cv::Mat find_contours(const cv::Mat input, bool use_bounding_box=false);
+	cv::Mat find_contours(const cv::Mat input, const cv::Mat original, bool use_bounding_box=false);
 
 private:
 

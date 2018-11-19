@@ -34,18 +34,24 @@ int main(int argc, char ** argv) {
 	// Background Remover object
 	FindPeople bg_rem;
 
-	for (int i = 0; i < 1000; ++i) {
+	while (true) {
 
 		// Get the frame
 		video >> frame;
+
+		// If we reach the end of the video, we exit
+		if (frame.empty())
+			exit(0);
 
 		// Extract people
 		Mat fg = bg_rem.find_people(frame);
 
 		// Find contours and boundin boxes
-		Mat drawing = bg_rem.find_contours(fg, true);
+		Mat drawing = bg_rem.find_contours(fg, frame, true);
 
 		// Print everything on screen
+		// TODO: this ordering will show a wrecked threshold image
+		// because it is changed by the find_contours function.
 		namedWindow("Threshold",WINDOW_NORMAL);
 		resizeWindow("Threshold", 600, 600);
 		imshow("Threshold", fg);
