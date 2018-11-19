@@ -3,6 +3,7 @@
 */
 
 #include "preprocessing.h"
+#include <string>
 
 using namespace cv;
 
@@ -64,5 +65,11 @@ cv::Mat FindPeople::find_contours(const cv::Mat input)
 		Scalar color = Scalar( 0,0,255);
 		drawContours(drawing, contours, i, color, 2, 8, hierarchy, 0, Point() );
 	}
+
+	// Add counter showing how many people are in the image
+	std::string total_people = "People Count: " + std::to_string(contours.size());
+	rectangle(drawing, Point(0, 0), Point(300, 70), (255,255,255), 5);
+	putText(drawing, total_people, Point(10,50), FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2);
+
 	return drawing;
 }
