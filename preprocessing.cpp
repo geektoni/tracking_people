@@ -1,97 +1,50 @@
 /*
-* Written (W) 2018 uriel
+* Written (W) 2018 Giovanni De Toni
 */
 
 #include "preprocessing.h"
 
 using namespace cv;
 
-
-void erode_shape(Mat &frame, Mat &output, int shape)
-{
-	Mat str = getStructuringElement(shape, Size(3,3), Point(0,0));
-	erode(frame, output, str);
-}
-
-/**
- * First dilate, then erode
- */
-void closing(Mat & frame)
-{
-	Mat dil;
-
-	Mat str = getStructuringElement(MORPH_ELLIPSE, Size(4,4), Point(0,0));
-
-	dilate(frame, dil, str);
-	erode(dil, frame, str);
-}
-
-
-void opening(Mat &frame, Mat &output, int shape)
-{
-	Mat dil;
-
-	Mat str = getStructuringElement(shape, Size(3,3), Point(0,0));
-
-	erode(frame, dil, str);
-	dilate(dil,output, str);
-}
-
 /**
  * https://lowweilin.wordpress.com/2014/08/07/image-background-and-shadow-removal/
+ * https://stackoverflow.com/questions/20542352/automatic-approach-for-removing-colord-object-shadow-on-white-background
  */
-void FindPeople::shadow_removal(Mat & frame)
+Mat FindPeople::shadow_removal(const Mat frame)
 {
 	Mat tmp_frame;
 
 	// Convert the frame from RGB to the HSV color space
 	cvtColor(frame, tmp_frame, CV_RGB2HSV);
 
-	// Loop over the image pixels and set the V to a fixed color
-	for(int y=0;y<tmp_frame.rows;y++)
-	{
-		for(int x=0;x<tmp_frame.cols;x++)
-		{
-			// get pixel
-			Vec3b color = tmp_frame.at<Vec3b>(Point(x,y));
+	// Extract the channels
+	vector<Mat> channels;
+	split(tmp_frame, channels);
 
-			// Fix the V component
-			color[2] = 127;
+	// Do a thresholding
+	Mat thres = channels[0];
+	//medianBlur(thres, thres, 5);
+	adaptiveThreshold(thres, thres, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 401, -10);
 
-			// set pixel
-			tmp_frame.at<Vec3b>(Point(x,y)) = color;
-		}
-	}
-
-	//Now convert back to RGB and we are done
-	cvtColor(tmp_frame, frame, CV_HSV2RGB);
-
+	return thres;
 }
 
 FindPeople::FindPeople() {
-	this->pGMM = new BackgroundSubtractorMOG2(300, 600, true);
+	this->pGMM = new BackgroundSubtractorMOG2(300, 350, true);
 }
 
 Mat FindPeople::find_people(const Mat input)
 {
-	Mat fg;
+	// Remove the shadows
+	Mat fg = shadow_removal(input);
 
-	/// Convert to grayscale
-	//cvtColor(input,fg, CV_BGR2GRAY);
+	pGMM->operator()(fg, fg, -1);
 
-	/// Apply Histogram Equalization
-	//equalizeHist(fg,fg);
-
-	pGMM->operator()(input, fg, -1);
-
-	// Partly remove the shadows
+	// Remove evetual shadows that were left
 	threshold(fg, fg, this->thresh, 255, THRESH_BINARY);
 
-	//GaussianBlur(fg, fg, Size(3, 3), 0, 0);
-
-	// Apply opening and closing operators operator
-	//morphologyEx(fg, fg, MORPH_OPEN, getStructuringElement(MORPH_RECT, Size(1,1), Point(-1,-1)), Point(-1,-1), 1);
-	morphologyEx(fg, fg, MORPH_CLOSE, getStructuringElement(MORPH_RECT, Size(6,6), Point(-1,-1)), Point(-1,-1), 1);
+	// Apply opening operator
+	morphologyEx(fg, fg, MORPH_OPEN, getStructuringElement(MORPH_RECT, Size(3,3), Point(-1,-1)), Point(-1,-1), 1);
 
 	return fg;
 }

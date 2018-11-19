@@ -1,5 +1,5 @@
 /*
-* Written (W) 2018 uriel
+* Written (W) 2018 Giovanni De Toni
 */
 
 #ifndef TRACKING_PEOPLE_SHADOW_REMOVAL_H
@@ -32,16 +32,11 @@ private:
  	* good detection of the people.
  	* @param frame current video frame
  	*/
-	void shadow_removal(cv::Mat & frame);
+	cv::Mat shadow_removal(const cv::Mat frame);
 
 
 	cv::Ptr<cv::BackgroundSubtractor> pGMM;
 	int thresh = 128;
 };
-
-void closing(cv::Mat & frame);
-void opening(cv::Mat &frame, cv::Mat &output, int shape);
-
-void erode_shape(cv::Mat &frame, cv::Mat &output, int shape);
 
 #endif //TRACKING_PEOPLE_SHADOW_REMOVAL_H
