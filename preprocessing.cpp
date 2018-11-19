@@ -6,6 +6,11 @@
 
 using namespace cv;
 
+FindPeople::FindPeople(bool preprocess_shadows) {
+	this->pGMM = new BackgroundSubtractorMOG2(300, 350, true);
+	this->preprocess_shadows = preprocess_shadows;
+}
+
 /**
  * https://lowweilin.wordpress.com/2014/08/07/image-background-and-shadow-removal/
  * https://stackoverflow.com/questions/20542352/automatic-approach-for-removing-colord-object-shadow-on-white-background
@@ -29,15 +34,12 @@ Mat FindPeople::shadow_removal(const Mat frame)
 	return thres;
 }
 
-FindPeople::FindPeople() {
-	this->pGMM = new BackgroundSubtractorMOG2(300, 350, true);
-}
-
 Mat FindPeople::find_people(const Mat input)
 {
 	// Remove the shadows
-	Mat fg = shadow_removal(input);
+	Mat fg = preprocess_shadows ? shadow_removal(input) : input;
 
+	// Apply the GMM
 	pGMM->operator()(fg, fg, -1);
 
 	// Remove evetual shadows that were left

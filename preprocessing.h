@@ -12,7 +12,7 @@
 class FindPeople
 {
 public:
-	FindPeople();
+	FindPeople(bool preprocess_shadows=true);
 
 	/**
  	* Method that performs background subtraction tasks
@@ -22,6 +22,11 @@ public:
  	*/
 	cv::Mat find_people(const cv::Mat input);
 
+	/**
+	 * Find contours of moving objects given a frame
+	 * @param input a black and white frame
+	 * @return a frame with red contours
+	 */
 	cv::Mat find_contours(const cv::Mat input);
 
 private:
@@ -37,6 +42,7 @@ private:
 
 	cv::Ptr<cv::BackgroundSubtractor> pGMM;
 	int thresh = 128;
+	bool preprocess_shadows;
 };
 
 #endif //TRACKING_PEOPLE_SHADOW_REMOVAL_H
