@@ -46,8 +46,9 @@ Mat FindPeople::find_people(const Mat input)
 	// Remove evetual shadows that were left
 	threshold(fg, fg, this->thresh, 255, THRESH_BINARY);
 
-	// Apply opening operator
+	// Apply opening and dilation operator
 	morphologyEx(fg, fg, MORPH_OPEN, getStructuringElement(MORPH_RECT, Size(3,3), Point(-1,-1)), Point(-1,-1), 1);
+	morphologyEx(fg, fg, MORPH_DILATE, getStructuringElement(MORPH_RECT, Size(3,3), Point(-1,-1)), Point(-1,-1), 1);
 
 	return fg;
 }
