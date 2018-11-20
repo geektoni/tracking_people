@@ -27,12 +27,8 @@ Mat FindPeople::shadow_removal(const Mat frame)
 	vector<Mat> channels;
 	split(tmp_frame, channels);
 
-	// Do a thresholding and a blurring to reduce noise
-	Mat thres = channels[0];
-	medianBlur(thres, thres, 3);
-	adaptiveThreshold(thres, thres, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 401, -10);
-
-	return thres;
+	// Return only the H channel (remove shadows);
+	return channels[0];
 }
 
 Mat FindPeople::find_people(const Mat input)
@@ -48,7 +44,7 @@ Mat FindPeople::find_people(const Mat input)
 
 	// Apply opening and dilation operator
 	morphologyEx(fg, fg, MORPH_OPEN, getStructuringElement(MORPH_RECT, Size(3,3), Point(-1,-1)), Point(-1,-1), 1);
-	morphologyEx(fg, fg, MORPH_DILATE, getStructuringElement(MORPH_RECT, Size(3,3), Point(-1,-1)), Point(-1,-1), 1);
+	morphologyEx(fg, fg, MORPH_DILATE, getStructuringElement(MORPH_RECT, Size(3,3), Point(-1,-1)), Point(-1,-1), 2);
 
 	return fg;
 }
