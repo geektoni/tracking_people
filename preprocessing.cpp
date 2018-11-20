@@ -27,9 +27,9 @@ Mat FindPeople::shadow_removal(const Mat frame)
 	vector<Mat> channels;
 	split(tmp_frame, channels);
 
-	// Do a thresholding
+	// Do a thresholding and a blurring to reduce noise
 	Mat thres = channels[0];
-	//medianBlur(thres, thres, 5);
+	medianBlur(thres, thres, 3);
 	adaptiveThreshold(thres, thres, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 401, -10);
 
 	return thres;
