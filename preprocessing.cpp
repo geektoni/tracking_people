@@ -137,7 +137,8 @@ vector<Point2f> FindPeople::track_people_optical(cv::Mat previous, cv::Mat curre
 
 	// Comput centroids for each of the points
 	// and store them into an array.
-	vector<Point2f> points = compute_center(_boundRect);
+	vector<Point2f> points = compute_centroids(_contours);
+	//compute_center(_boundRect);
 
 	// This array will contain the next points
 	vector<Point2f> result(points.size());
@@ -159,4 +160,23 @@ vector<Point2f> FindPeople::compute_center(const cv::vector<cv::Rect> & _boundRe
 		points.push_back(Point2f(cx, cy));
 	}
 	return points;
+}
+
+cv::vector<cv::Point2f> FindPeople::compute_centroids(const cv::vector<cv::vector<cv::Point>> & contours)
+{
+	vector<Moments> mu(contours.size() );
+	vector<Point2f> mc( contours.size() );
+
+	// Get the moments and then compute the mass center
+	for( int i = 0; i < contours.size(); i++ )
+	{
+		mu[i] = moments( contours[i], false );
+	}
+
+	for( int i = 0; i < contours.size(); i++ )
+	{
+		mc[i] = Point2f( mu[i].m10/mu[i].m00 , mu[i].m01/mu[i].m00 );
+	}
+
+	return mc;
 }

@@ -43,7 +43,8 @@ cv::Mat merge_images(const cv::Mat & base, const cv::Mat & mask)
 	mask.copyTo(mask_bw);
 	base.copyTo(base_cp);
 
-	Mat roi = Mat::zeros(base.size(), CV_8UC3);
+	Mat roi;
+	base.copyTo(roi);
 
 	cv::cvtColor(mask_bw, mask_bw, CV_RGB2GRAY);
 	cv::threshold(mask_bw, mask_bw, 10, 255, THRESH_BINARY);
@@ -51,9 +52,11 @@ cv::Mat merge_images(const cv::Mat & base, const cv::Mat & mask)
 	cv::bitwise_not(mask_bw, mask_inv);
 
 	bitwise_and(roi, roi, base_bg, mask_inv);
-	bitwise_and(base, base_cp, mask_fg, mask_bw);
+	bitwise_and(mask, mask, mask_fg, mask_bw);
 
 	add(base_bg, mask_fg, result);
+
+	//imshow("Mask_inv", base_bg);
 
 	return result;
 }

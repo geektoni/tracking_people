@@ -52,6 +52,8 @@ public:
 	 */
 	static cv::vector<cv::Point2f> compute_center(const cv::vector<cv::Rect> & boundRect);
 
+	static cv::vector<cv::Point2f> compute_centroids(const cv::vector<cv::vector<cv::Point>> & contours);
+
 private:
 
 	/**
