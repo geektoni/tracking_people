@@ -9,7 +9,13 @@
 #include <string>
 #include <map>
 
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
+#include <opencv/cvaux.h>
+#include <opencv/cxcore.h>
+
 using namespace std;
+using namespace cv;
 
 class InputParser
 {
@@ -35,5 +41,14 @@ private:
 	vector<string> parameters; // Parameters we want to find
 	map<string, string> parsed_argv; // Parsed input string
 };
+
+/**
+ * Merge to images together (mask on top of base)
+ * @param base the original image
+ * @param mask the mask we want to glue on top of the original image
+ * @return the merged image
+ */
+cv::Mat merge_images(const cv::Mat & base, const cv::Mat & mask);
+
 
 #endif //TRACKING_PEOPLE_UTILS_H

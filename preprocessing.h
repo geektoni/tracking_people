@@ -9,6 +9,8 @@
 #include <opencv/highgui.h>
 #include <opencv/cvaux.h>
 
+#include "Human.h"
+
 class FindPeople
 {
 public:
@@ -27,7 +29,42 @@ public:
 	 * @param input a black and white frame
 	 * @return a frame with red contours
 	 */
-	cv::Mat find_contours(const cv::Mat input, const cv::Mat original, bool use_bounding_box=false);
+	cv::Mat find_contours(const cv::Mat input, const cv::Mat original_input,
+				  bool use_bounding_box,
+				  cv::vector<cv::vector<cv::Point>> & _contours,
+				  cv::vector<cv::Rect> & _boundRect);
+
+	/**
+	 * Track people given their bounding boxes
+	 * @param previous previous frame (at time step t-1)
+	 * @param current current frame (at time step t)
+	 * @param _contours the contours of the people found on the frame
+	 * @param _boundRect the bounding boxes computed from the contours
+	 * @return the set of next points
+	 */
+	cv::vector<cv::Point2f> track_people_optical(cv::Mat previous, cv::Mat current,
+												 cv::vector<cv::vector<cv::Point>> & _contours,
+												 cv::vector<cv::Rect> & _boundRect);
+
+
+	void update_humans(cv::vector<cv::Point2f> points, int frame_size);
+
+	cv::vector<Human> return_humans() {return this->humans_tracked;}
+
+	/**
+	 * Compute the center of bounding boxes.
+	 * @param boundRect a vector containing the bounding boxes
+	 * @return a vector with the centers
+	 */
+	static cv::vector<cv::Point2f> compute_center(const cv::vector<cv::Rect> & boundRect);
+
+	/**
+	 * Compute centroids of the contours
+	 * @param contours vector of several contours
+	 * @return a vector with the computed centroids
+	 */
+	static cv::vector<cv::Point2f> compute_centroids(const cv::vector<cv::vector<cv::Point>> & contours);
+
 
 private:
 
@@ -44,6 +81,18 @@ private:
 	cv::Ptr<cv::BackgroundSubtractor> pGMM;
 	int thresh = 128;
 	bool preprocess_shadows;
+
+	// Human counter
+	int counter;
+
+	// Human found
+	cv::vector<Human> humans_tracked;
+
+	// Threshold human disappearence (frames)
+	int disappearence_threshold = 100;
+
+	// border threshold
+	int border_threshold = 30;
 };
 
 #endif //TRACKING_PEOPLE_SHADOW_REMOVAL_H
