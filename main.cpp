@@ -11,6 +11,12 @@
 using namespace cv;
 using namespace std;
 
+#define drawCross(img, center, color, d )                                 \
+line( img, Point( center.x - d, center.y - d ),                \
+Point( center.x + d, center.y + d ), color, 2, CV_AA, 0); \
+line( img, Point( center.x + d, center.y - d ),                \
+Point( center.x - d, center.y + d ), color, 2, CV_AA, 0 )
+
 int main(int argc, char ** argv) {
 
 	// Parse the command line and get the
@@ -80,7 +86,8 @@ int main(int argc, char ** argv) {
 
 		if (!previous.empty())
 		{
-			next_centers = bg_rem.track_people_optical(previous, frame, contours, boundRect);
+			//next_centers = bg_rem.track_people_optical(previous, frame, contours, boundRect);
+			bg_rem.track_people_kalman(frame, contours, boundRect);
 
 			// Get the tracked humans
 			auto humans = bg_rem.return_humans();
@@ -92,11 +99,15 @@ int main(int argc, char ** argv) {
 				if (!h.is_disappeared())
 				{
 					// Print the line
-					for (int i=0, j=1; j<h.get_trace().size(); i++)
+					for (int i=0, j=1; j<h.get_trace().size();)
 					{
 						line(lines_mask, h.get_trace()[i], h.get_trace()[j], h.get_color(), 3);
 						j++;
+						i++;
 					}
+
+					// Print also the current position
+					drawCross(lines_mask, h.get_current_position(), h.get_color(), 5);
 				}
 
 			}

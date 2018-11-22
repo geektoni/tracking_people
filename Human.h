@@ -58,6 +58,25 @@ public:
 
 	KalmanFilter & get_kalman() {return kalman;}
 
+	void predict() {
+		Mat pred = kalman.predict();
+		predicted_point = Point2f(pred.at<float>(0), pred.at<float>(1));
+	}
+
+	Point2f correct(const Point2f measured)
+	{
+		Mat_<float> measurement(2,1);
+		measurement.setTo(Scalar(0));
+		measurement(0) = measured.x;
+		measurement(1) = measured.y;
+		Mat est = kalman.correct(measurement);
+		return Point2f(est.at<float>(0), est.at<float>(1));
+	}
+
+	Point2f get_predicted_point() {return predicted_point;}
+
+	Mat get_histogram() {return histogram;}
+
 private:
 
 	// The human id
@@ -86,6 +105,9 @@ private:
 
 	// Kalman Filter for this user
 	KalmanFilter kalman;
+
+	// Prediction point
+	Point2f predicted_point;
 
 };
 

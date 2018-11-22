@@ -154,6 +154,18 @@ vector<Point2f> FindPeople::track_people_optical(cv::Mat previous, cv::Mat curre
 	return result;
 }
 
+void FindPeople::track_people_kalman(cv::Mat current, cv::vector<cv::vector<cv::Point>> &_contours,
+									 cv::vector<cv::Rect> &_boundRect)
+{
+	// Compute centroids for each of the points
+	// and store them into an array.
+	vector<Point2f> points = compute_centroids(_contours);
+	//vector<Point2f> points =  compute_center(_boundRect);
+
+	// Update the humans using their own kalman filter
+	this->update_humans_kalman(points, current.cols);
+}
+
 vector<Point2f> FindPeople::compute_center(const cv::vector<cv::Rect> & _boundRect)
 {
 	vector<Point2f> points;
@@ -183,6 +195,101 @@ cv::vector<cv::Point2f> FindPeople::compute_centroids(const cv::vector<cv::vecto
 	}
 
 	return mc;
+}
+
+void FindPeople::update_humans_kalman(cv::vector<cv::Point2f> points, int frame_size)
+{
+	// If this is the first run, we add the users into the array
+	if (this->humans_tracked.size()==0)
+	{
+		for (Point2f p : points)
+		{
+			Human tmp(this->counter++);
+			tmp.update_position(p);
+			tmp.add_to_trace(p);
+			tmp.initialize_kalman(p.x, p.y);
+			this->humans_tracked.push_back(tmp);
+		}
+
+	} else {
+
+		// For each human detected during the previous phase,
+		// run the kalman and predict the next position
+		for (Human & h : this->humans_tracked)
+		{
+			if (!h.is_disappeared())
+			{
+				h.predict();
+			}
+		}
+
+		// Check if we can pair points to their user
+		for (Point2f p : points)
+		{
+			// We assume that this point has not been paired
+			bool found=false;
+
+			// The human which will be nearer to the point will
+			// take it as its own.
+			Human * winner_human;
+			float winner_distance=-1;
+			for (Human & h : this->humans_tracked)
+			{
+				// We can only check for users that are still in the scene
+				if (!h.is_disappeared()) {
+					// We increment the disappearence rate for this user
+					h.update_disappearence();
+
+					// If we have found a corresponding "human",
+					// then we update its position and trace.
+					if (h.is_the_same(p)) {
+						if (!(winner_distance > h.get_distance_from(p)))
+						{
+							winner_distance = h.get_distance_from(p);
+							winner_human = &h;
+							found=true;
+						}
+					}
+				}
+			}
+
+			// If the point was found, then the best user will take it
+			if (found)
+			{
+				// Correct the prediction with the measurement
+				Point2f predicted = winner_human->correct(p);
+
+				winner_human->update_position(predicted);
+				winner_human->add_to_trace(predicted);
+				winner_human->reset_disappearence();
+			}
+
+			// If this point has not been found and if it reasonably
+			// near the side of the frame, then we assume that it is
+			// a new guy entering the scene
+			float distance_left = abs(p.x-frame_size);
+			float distance_right = frame_size - abs(p.x-frame_size);
+
+			if (!found
+				&& (distance_left < this->border_threshold
+					|| distance_right < this->border_threshold))
+			{
+				Human tmp(this->counter++);
+				tmp.update_position(p);
+				tmp.add_to_trace(p);
+				tmp.initialize_kalman(p.x, p.y);
+				this->humans_tracked.push_back(tmp);
+			}
+		}
+	}
+
+	// Finally, we remove all the users that has a disapperence rate greater than
+	// a specific value
+	for (Human & p : this->humans_tracked)
+	{
+		if (p.get_disappearence() > this->disappearence_threshold)
+			p.kill();
+	}
 }
 
 void FindPeople::update_humans(cv::vector<cv::Point2f> result, int frame_size) {

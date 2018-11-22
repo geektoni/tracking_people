@@ -77,7 +77,7 @@ void Human::initialize_kalman(double x, double y)
 	// and to the process noise covariance. The covariance
 	// will have slightly smaller values on the diagonal.
 	setIdentity(kalman.measurementMatrix);
-	setIdentity(kalman.processNoiseCov, Scalar::all(1e-4));
-	setIdentity(kalman.measurementNoiseCov, Scalar::all(0.1));
+	setIdentity(kalman.processNoiseCov, Scalar::all(1e-5));
+	setIdentity(kalman.measurementNoiseCov, Scalar::all(1e-3));
 	setIdentity(kalman.errorCovPost, Scalar::all(0.1));
 }
