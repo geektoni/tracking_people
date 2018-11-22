@@ -5,7 +5,7 @@
 #ifndef TRACKING_PEOPLE_HUMAN_H
 #define TRACKING_PEOPLE_HUMAN_H
 
-#include <opencv/cxcore.h>
+#include <opencv2/opencv.hpp>
 
 using namespace cv;
 
@@ -54,6 +54,10 @@ public:
 	int get_id() {return this->id;}
 	Point2f get_current_position() {return this->current_position;}
 
+	void initialize_kalman(double x, double y);
+
+	KalmanFilter & get_kalman() {return kalman;}
+
 private:
 
 	// The human id
@@ -79,6 +83,9 @@ private:
 
 	// Set to true if the user disappeared
 	bool disappeared;
+
+	// Kalman Filter for this user
+	KalmanFilter kalman;
 
 };
 
