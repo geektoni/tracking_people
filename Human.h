@@ -44,6 +44,11 @@ public:
 	bool is_disappeared() {return this->disappeared;}
 	void kill() {this->disappeared = true;}
 
+	float get_distance_from(const Point2f position)
+	{
+		return sqrt(pow(this->current_position.x-position.x, 2)+pow(this->current_position.y-position.y,2));
+	}
+
 	vector<Point2f> get_trace() {return this->trace;}
 	Scalar get_color() {return this->color;}
 

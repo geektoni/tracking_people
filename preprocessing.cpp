@@ -167,6 +167,10 @@ vector<Point2f> FindPeople::track_people_optical(cv::Mat previous, cv::Mat curre
 			// We assume that this point has not been paired
 			bool found=false;
 
+			// The human which will be nearer to the point will
+			// take it as its own.
+			Human * winner_human;
+			float winner_distance=-1;
 			for (Human & h : this->humans_tracked)
 			{
 				// We can only check for users that are still in the scene
@@ -177,12 +181,22 @@ vector<Point2f> FindPeople::track_people_optical(cv::Mat previous, cv::Mat curre
 					// If we have found a the corresponding "human",
 					// then we update its position and trace.
 					if (h.is_the_same(p)) {
-						h.update_position(p);
-						h.add_to_trace(p);
-						h.reset_disappearence();
-						break;
+						if (!(winner_distance > h.get_distance_from(p)))
+						{
+							winner_distance = h.get_distance_from(p);
+							winner_human = &h;
+							found=true;
+						}
 					}
 				}
+			}
+
+			// If the point was found, then the best user will take it
+			if (found)
+			{
+				winner_human->update_position(p);
+				winner_human->add_to_trace(p);
+				winner_human->reset_disappearence();
 			}
 
 			// If this point has not been found and if it reasonably
