@@ -42,6 +42,12 @@ private:
 	map<string, string> parsed_argv; // Parsed input string
 };
 
+/**
+ * Merge to images together (mask on top of base)
+ * @param base the original image
+ * @param mask the mask we want to glue on top of the original image
+ * @return the merged image
+ */
 cv::Mat merge_images(const cv::Mat & base, const cv::Mat & mask);
 
 

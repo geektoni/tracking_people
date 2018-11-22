@@ -96,18 +96,18 @@ int main(int argc, char ** argv) {
 			frame.copyTo(previous);
 
 		// Print everything on screen
-		//namedWindow("Threshold",WINDOW_NORMAL);
-		//resizeWindow("Threshold", 600, 600);
-		//imshow("Threshold", fg_copy);
+		namedWindow("Threshold",WINDOW_NORMAL);
+		resizeWindow("Threshold", 600, 600);
+		imshow("Threshold", fg_copy);
 
 		namedWindow("Detect",WINDOW_NORMAL);
 		resizeWindow("Detect", 600, 600);
 		imshow("Detect", drawing);
 
-		namedWindow("Tracking",WINDOW_NORMAL);
-		resizeWindow("Tracking", 600, 600);
-		if (!tracking.empty())
-			imshow("Tracking", tracking);
+		//namedWindow("Tracking",WINDOW_NORMAL);
+		//resizeWindow("Tracking", 600, 600);
+		//if (!tracking.empty())
+			//imshow("Tracking", tracking);
 
 		// Increment the frame counter
 		i++;

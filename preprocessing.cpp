@@ -45,7 +45,7 @@ Mat FindPeople::find_people(const Mat input)
 
 	// Apply opening and dilation operator
 	morphologyEx(fg, fg, MORPH_OPEN, getStructuringElement(MORPH_RECT, Size(3,3), Point(-1,-1)), Point(-1,-1), 1);
-	morphologyEx(fg, fg, MORPH_DILATE, getStructuringElement(MORPH_RECT, Size(3,3), Point(-1,-1)), Point(-1,-1), 2);
+	morphologyEx(fg, fg, MORPH_DILATE, getStructuringElement(MORPH_RECT, Size(4,4), Point(-1,-1)), Point(-1,-1), 2);
 
 	return fg;
 }
