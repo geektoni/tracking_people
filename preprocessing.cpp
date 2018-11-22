@@ -148,6 +148,45 @@ vector<Point2f> FindPeople::track_people_optical(cv::Mat previous, cv::Mat curre
 	if (points.size() != 0)
 		calcOpticalFlowPyrLK(previous, current, points, result, status, err);
 
+	// Update the human positions and labels
+	this->update_humans(result, current.cols);
+
+	return result;
+}
+
+vector<Point2f> FindPeople::compute_center(const cv::vector<cv::Rect> & _boundRect)
+{
+	vector<Point2f> points;
+	for (int i = 0; i < _boundRect.size(); i++)
+	{
+		float cx = _boundRect[i].x+_boundRect[i].width/2;
+		float cy = _boundRect[i].y+_boundRect[i].height/2;
+		points.push_back(Point2f(cx, cy));
+	}
+	return points;
+}
+
+cv::vector<cv::Point2f> FindPeople::compute_centroids(const cv::vector<cv::vector<cv::Point>> & contours)
+{
+	vector<Moments> mu(contours.size() );
+	vector<Point2f> mc( contours.size() );
+
+	// Get the moments and then compute the mass center
+	for( int i = 0; i < contours.size(); i++ )
+	{
+		mu[i] = moments( contours[i], false );
+	}
+
+	for( int i = 0; i < contours.size(); i++ )
+	{
+		mc[i] = Point2f( mu[i].m10/mu[i].m00 , mu[i].m01/mu[i].m00 );
+	}
+
+	return mc;
+}
+
+void FindPeople::update_humans(cv::vector<cv::Point2f> result, int frame_size) {
+
 	// If this is the first run, we add the users into the array
 	if (this->humans_tracked.size()==0)
 	{
@@ -202,12 +241,12 @@ vector<Point2f> FindPeople::track_people_optical(cv::Mat previous, cv::Mat curre
 			// If this point has not been found and if it reasonably
 			// near the side of the frame, then we assume that it is
 			// a new guy entering the scene
-			float distance_left = abs(p.x-current.cols);
-			float distance_right = current.cols - abs(p.x-current.cols);
+			float distance_left = abs(p.x-frame_size);
+			float distance_right = frame_size - abs(p.x-frame_size);
 
 			if (!found
 				&& (distance_left < this->border_threshold
-				|| distance_right < this->border_threshold))
+					|| distance_right < this->border_threshold))
 			{
 				Human tmp(this->counter++);
 				tmp.update_position(p);
@@ -224,38 +263,4 @@ vector<Point2f> FindPeople::track_people_optical(cv::Mat previous, cv::Mat curre
 		if (p.get_disappearence() > this->disappearence_threshold)
 			p.kill();
 	}
-
-
-	return result;
-}
-
-vector<Point2f> FindPeople::compute_center(const cv::vector<cv::Rect> & _boundRect)
-{
-	vector<Point2f> points;
-	for (int i = 0; i < _boundRect.size(); i++)
-	{
-		float cx = _boundRect[i].x+_boundRect[i].width/2;
-		float cy = _boundRect[i].y+_boundRect[i].height/2;
-		points.push_back(Point2f(cx, cy));
-	}
-	return points;
-}
-
-cv::vector<cv::Point2f> FindPeople::compute_centroids(const cv::vector<cv::vector<cv::Point>> & contours)
-{
-	vector<Moments> mu(contours.size() );
-	vector<Point2f> mc( contours.size() );
-
-	// Get the moments and then compute the mass center
-	for( int i = 0; i < contours.size(); i++ )
-	{
-		mu[i] = moments( contours[i], false );
-	}
-
-	for( int i = 0; i < contours.size(); i++ )
-	{
-		mc[i] = Point2f( mu[i].m10/mu[i].m00 , mu[i].m01/mu[i].m00 );
-	}
-
-	return mc;
 }

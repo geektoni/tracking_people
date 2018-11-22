@@ -47,6 +47,8 @@ public:
 												 cv::vector<cv::Rect> & _boundRect);
 
 
+	void update_humans(cv::vector<cv::Point2f> points, int frame_size);
+
 	cv::vector<Human> return_humans() {return this->humans_tracked;}
 
 	/**
@@ -62,6 +64,7 @@ public:
 	 * @return a vector with the computed centroids
 	 */
 	static cv::vector<cv::Point2f> compute_centroids(const cv::vector<cv::vector<cv::Point>> & contours);
+
 
 private:
 
