@@ -38,9 +38,6 @@ int main(int argc, char ** argv) {
 	vector<vector<Point>> contours;
 	vector<Rect> boundRect;
 
-	// Frame counter
-	int i=0;
-
 	while (true) {
 
 		// Get the frame
@@ -69,7 +66,7 @@ int main(int argc, char ** argv) {
 		// displacement each 5 frame to have less noise.
 		frame.copyTo(tracking_lines);
 
-		if (!previous.empty() && i%1==0)
+		if (!previous.empty())
 		{
 			next_centers = bg_rem.track_people_optical(previous, frame, contours, boundRect);
 
@@ -100,7 +97,7 @@ int main(int argc, char ** argv) {
 		}
 
 		// Update for the first thame the previous frame
-		if (previous.empty() && i%1==0)
+		if (previous.empty())
 			frame.copyTo(previous);
 
 		// Print everything on screen
@@ -117,10 +114,7 @@ int main(int argc, char ** argv) {
 		if (!tracking.empty())
 			imshow("Tracking", tracking);
 
-		// Increment the frame counter
-		i++;
-
-		waitKey(1);
+		waitKey(100);
 	}
 
 
