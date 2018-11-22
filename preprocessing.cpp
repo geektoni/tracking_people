@@ -4,6 +4,7 @@
 
 #include "preprocessing.h"
 #include <string>
+#include <iostream>
 
 using namespace cv;
 
@@ -65,27 +66,38 @@ vector<Rect> FindPeople::generate_bounding_boxes(const vector<vector<Point>> & c
 	return boundRect;
 }
 
-cv::Mat FindPeople::find_contours(const cv::Mat input, const cv::Mat original_input,  bool use_bounding_box) {
+cv::Mat FindPeople::find_contours(const cv::Mat input, const cv::Mat original_input,
+								  bool use_bounding_box,
+								  vector<vector<Point>> & _contours,
+								  vector<Rect> & _boundRect) {
 
-	vector<vector<Point>> contours;
+	vector<vector<Point>> contours, filtered_contours;
 	vector<Vec4i> hierarchy;
+
+	// Find people contours
 	findContours(input, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
 
+	// Filter contours in order to avoid false positives
+	for (vector<Point> c : contours)
+	{
+		// Skip the contour if it is too small
+		if (contourArea(c) < 400) {
+			continue;
+		}
+		filtered_contours.push_back(c);
+	}
+
 	// If we want bounding boxes instead of just the contours
-	vector<Rect> boundRect(contours.size());
+	vector<Rect> boundRect(filtered_contours.size());
 	if (use_bounding_box) {
-		boundRect = this->generate_bounding_boxes(contours);
+		boundRect = this->generate_bounding_boxes(filtered_contours);
 	}
 
 	// Draw contours and count possible "peoples"
 	int total_people_count = 0;
 	Mat drawing; original_input.copyTo(drawing);
 
-	for (int i = 0; i < contours.size(); i++) {
-		// Skip the contour if it is too small
-		if (contourArea(contours[i]) < 400) {
-			continue;
-		}
+	for (int i = 0; i < filtered_contours.size(); i++) {
 
 		Scalar color_bbox = Scalar(0, 0, 255);
 		Scalar color_cont = Scalar(255,255,255);
@@ -96,7 +108,7 @@ cv::Mat FindPeople::find_contours(const cv::Mat input, const cv::Mat original_in
 		}
 
 		// Draw the actual contours
-		drawContours(drawing, contours, i, color_cont, 2, 8, hierarchy, 0, Point());
+		drawContours(drawing, filtered_contours, i, color_cont, 2, 8, hierarchy, 0, Point());
 
 		// Increase the people counter;
 		total_people_count++;
@@ -104,8 +116,47 @@ cv::Mat FindPeople::find_contours(const cv::Mat input, const cv::Mat original_in
 
 	// Add counter showing how many people are in the image
 	std::string total_people = "People Count: " + std::to_string(total_people_count);
-	rectangle(drawing, Point(0, 0), Point(300, 70), (255, 255, 255), 5);
-	putText(drawing, total_people, Point(10, 50), FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2);
+	rectangle(drawing, Point(0, 0), Point(300, 70), Scalar(0,0,0), -1);
+	putText(drawing, total_people, Point(10, 45), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 255, 255), 2);
+
+	// Copy the contours and the rectangle
+	// The rectangles' centres can be used as features points
+	// for the optical flow algorithm. Contours are provided if
+	// we need other informations
+	_contours = filtered_contours;
+	_boundRect = boundRect;
 
 	return drawing;
+}
+
+vector<Point2f> FindPeople::track_people_optical(cv::Mat previous, cv::Mat current, cv::vector<cv::vector<cv::Point>> & _contours,
+							 cv::vector<cv::Rect> & _boundRect) {
+
+	vector<uchar> status;
+	vector<float> err;
+
+	// Comput centroids for each of the points
+	// and store them into an array.
+	vector<Point2f> points = compute_center(_boundRect);
+
+	// This array will contain the next points
+	vector<Point2f> result(points.size());
+
+	// Compute the flow (skip if there are no points to track)
+	if (points.size() != 0)
+		calcOpticalFlowPyrLK(previous, current, points, result, status, err);
+
+	return result;
+}
+
+vector<Point2f> FindPeople::compute_center(const cv::vector<cv::Rect> & _boundRect)
+{
+	vector<Point2f> points;
+	for (int i = 0; i < _boundRect.size(); i++)
+	{
+		float cx = _boundRect[i].x+_boundRect[i].width/2;
+		float cy = _boundRect[i].y+_boundRect[i].height/2;
+		points.push_back(Point2f(cx, cy));
+	}
+	return points;
 }

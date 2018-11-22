@@ -27,7 +27,30 @@ public:
 	 * @param input a black and white frame
 	 * @return a frame with red contours
 	 */
-	cv::Mat find_contours(const cv::Mat input, const cv::Mat original, bool use_bounding_box=false);
+	cv::Mat find_contours(const cv::Mat input, const cv::Mat original_input,
+				  bool use_bounding_box,
+				  cv::vector<cv::vector<cv::Point>> & _contours,
+				  cv::vector<cv::Rect> & _boundRect);
+
+	/**
+	 * Track people given their bounding boxes
+	 * @param previous previous frame (at time step t-1)
+	 * @param current current frame (at time step t)
+	 * @param _contours the contours of the people found on the frame
+	 * @param _boundRect the bounding boxes computed from the contours
+	 * @return the set of next points
+	 */
+	cv::vector<cv::Point2f> track_people_optical(cv::Mat previous, cv::Mat current,
+												 cv::vector<cv::vector<cv::Point>> & _contours,
+												 cv::vector<cv::Rect> & _boundRect);
+
+
+	/**
+	 * Compute the center of bounding boxes.
+	 * @param boundRect a vector containing the bounding boxes
+	 * @return a vector with the centers
+	 */
+	static cv::vector<cv::Point2f> compute_center(const cv::vector<cv::Rect> & boundRect);
 
 private:
 
