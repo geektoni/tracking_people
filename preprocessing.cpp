@@ -139,7 +139,7 @@ vector<Point2f> FindPeople::track_people_optical(cv::Mat previous, cv::Mat curre
 	// Comput centroids for each of the points
 	// and store them into an array.
 	vector<Point2f> points = compute_centroids(_contours);
-	//compute_center(_boundRect);
+	//vector<Point2f> points =  compute_center(_boundRect);
 
 	// This array will contain the next points
 	vector<Point2f> result(points.size());
