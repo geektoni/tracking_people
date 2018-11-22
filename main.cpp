@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 #include <opencv/cxcore.h>
@@ -7,6 +9,7 @@
 #include "preprocessing.h"
 
 using namespace cv;
+using namespace std;
 
 int main(int argc, char ** argv) {
 
@@ -37,6 +40,15 @@ int main(int argc, char ** argv) {
 	// Contours;
 	vector<vector<Point>> contours;
 	vector<Rect> boundRect;
+
+	// Open output file
+	ofstream output("./people_track.csv");
+
+	// Print the header
+	output << "frame,id,X,Y" << endl;
+
+	// Frame counter
+	int frame_counter=1;
 
 	while (true) {
 
@@ -114,9 +126,28 @@ int main(int argc, char ** argv) {
 		if (!tracking.empty())
 			imshow("Tracking", tracking);
 
-		waitKey(100);
+		waitKey(1);
+
+		// Print the current position for each human
+		for (Human h : bg_rem.return_humans())
+		{
+			if (!h.is_disappeared())
+			{
+				// Print the value for this frame
+				output << frame_counter
+					   << "," << h.get_id()
+					   << "," << h.get_current_position().x
+					   << "," << h.get_current_position().y << endl;
+			}
+		}
+
+		// Increment the frame counter
+		frame_counter++;
+
 	}
 
+	// Close the file
+	output.close();
 
 	return 0;
 }

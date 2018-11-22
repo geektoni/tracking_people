@@ -51,6 +51,8 @@ public:
 
 	vector<Point2f> get_trace() {return this->trace;}
 	Scalar get_color() {return this->color;}
+	int get_id() {return this->id;}
+	Point2f get_current_position() {return this->current_position;}
 
 private:
 
