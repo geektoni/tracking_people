@@ -47,10 +47,7 @@ int main(int argc, char ** argv) {
 		video >> frame;
 
 		// Initialize the tracking mask
-		if(lines_mask.empty())
-		{
-			lines_mask = Mat::zeros(Size(frame.cols, frame.rows), CV_8UC3);
-		}
+		lines_mask = Mat::zeros(Size(frame.cols, frame.rows), CV_8UC3);
 
 		// If we reach the end of the video, we exit
 		if (frame.empty())
@@ -71,17 +68,28 @@ int main(int argc, char ** argv) {
 		// second frame. We also do the tracking by measuring the
 		// displacement each 5 frame to have less noise.
 		frame.copyTo(tracking_lines);
+
 		if (!previous.empty() && i%1==0)
 		{
-			 next_centers = bg_rem.track_people_optical(previous, frame, contours, boundRect);
+			next_centers = bg_rem.track_people_optical(previous, frame, contours, boundRect);
+
+			// Get the tracked humans
+			auto humans = bg_rem.return_humans();
 
 			// Print a line between the points and the result
-			for (int j = 0; j < current_centers.size(); ++j) {
+			for (Human h : humans) {
 
-				// Create a color based on the id
-				Scalar color(10+j*5, 100, 10+j*15);
+				// Check if the user is still there
+				if (!h.is_disappeared())
+				{
+					// Print the line
+					for (int i=0, j=1; j<h.get_trace().size(); i++)
+					{
+						line(lines_mask, h.get_trace()[i], h.get_trace()[j], h.get_color(), 3);
+						j++;
+					}
+				}
 
-				line(lines_mask, current_centers[j], next_centers[j], color, 3);
 			}
 
 			// Merge the lines and the frame
@@ -96,18 +104,18 @@ int main(int argc, char ** argv) {
 			frame.copyTo(previous);
 
 		// Print everything on screen
-		namedWindow("Threshold",WINDOW_NORMAL);
-		resizeWindow("Threshold", 600, 600);
-		imshow("Threshold", fg_copy);
+		//namedWindow("Threshold",WINDOW_NORMAL);
+		//resizeWindow("Threshold", 600, 600);
+		//imshow("Threshold", fg_copy);
 
 		namedWindow("Detect",WINDOW_NORMAL);
 		resizeWindow("Detect", 600, 600);
 		imshow("Detect", drawing);
 
-		//namedWindow("Tracking",WINDOW_NORMAL);
-		//resizeWindow("Tracking", 600, 600);
-		//if (!tracking.empty())
-			//imshow("Tracking", tracking);
+		namedWindow("Tracking",WINDOW_NORMAL);
+		resizeWindow("Tracking", 600, 600);
+		if (!tracking.empty())
+			imshow("Tracking", tracking);
 
 		// Increment the frame counter
 		i++;

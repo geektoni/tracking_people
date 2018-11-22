@@ -3,6 +3,7 @@
 */
 
 #include "preprocessing.h"
+#include "Human.h"
 #include <string>
 #include <iostream>
 
@@ -146,6 +147,69 @@ vector<Point2f> FindPeople::track_people_optical(cv::Mat previous, cv::Mat curre
 	// Compute the flow (skip if there are no points to track)
 	if (points.size() != 0)
 		calcOpticalFlowPyrLK(previous, current, points, result, status, err);
+
+	// If this is the first run, we add the users into the array
+	if (this->humans_tracked.size()==0)
+	{
+		for (Point2f p : result)
+		{
+			Human tmp(this->counter++);
+			tmp.update_position(p);
+			tmp.add_to_trace(p);
+			this->humans_tracked.push_back(tmp);
+		}
+
+	} else {
+
+		// Check if we can pair points to their user
+		for (Point2f p : result)
+		{
+			// We assume that this point has not been paired
+			bool found=false;
+
+			for (Human & h : this->humans_tracked)
+			{
+				// We can only check for users that are still in the scene
+				if (!h.is_disappeared()) {
+					// We increment the disappearence rate for this user
+					h.update_disappearence();
+
+					// If we have found a the corresponding "human",
+					// then we update its position and trace.
+					if (h.is_the_same(p)) {
+						h.update_position(p);
+						h.add_to_trace(p);
+						h.reset_disappearence();
+						break;
+					}
+				}
+			}
+
+			// If this point has not been found and if it reasonably
+			// near the side of the frame, then we assume that it is
+			// a new guy entering the scene
+			float distance_left = abs(p.x-current.cols);
+			float distance_right = current.rows - abs(p.x-current.cols);
+			if (!found
+				&& (distance_left < this->border_threshold
+				|| distance_right < this->border_threshold))
+			{
+				Human tmp(this->counter++);
+				tmp.update_position(p);
+				tmp.add_to_trace(p);
+				this->humans_tracked.push_back(tmp);
+			}
+		}
+	}
+
+	// Finally, we remove all the users that has a disapperence rate greater than
+	// a specific value
+	for (Human & p : this->humans_tracked)
+	{
+		if (p.get_disappearence() > this->disappearence_threshold)
+			p.kill();
+	}
+
 
 	return result;
 }

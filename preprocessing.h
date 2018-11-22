@@ -9,6 +9,8 @@
 #include <opencv/highgui.h>
 #include <opencv/cvaux.h>
 
+#include "Human.h"
+
 class FindPeople
 {
 public:
@@ -45,6 +47,8 @@ public:
 												 cv::vector<cv::Rect> & _boundRect);
 
 
+	cv::vector<Human> return_humans() {return this->humans_tracked;}
+
 	/**
 	 * Compute the center of bounding boxes.
 	 * @param boundRect a vector containing the bounding boxes
@@ -74,6 +78,18 @@ private:
 	cv::Ptr<cv::BackgroundSubtractor> pGMM;
 	int thresh = 128;
 	bool preprocess_shadows;
+
+	// Human counter
+	int counter;
+
+	// Human found
+	cv::vector<Human> humans_tracked;
+
+	// Threshold human disappearence (frames)
+	int disappearence_threshold = 100;
+
+	// border threshold
+	int border_threshold = 30;
 };
 
 #endif //TRACKING_PEOPLE_SHADOW_REMOVAL_H

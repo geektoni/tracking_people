@@ -38,6 +38,15 @@ public:
 	 */
 	void update_position(const Point2f position);
 
+	int get_disappearence() {return this->disappearence;}
+	void update_disappearence() {this->disappearence++;}
+	void reset_disappearence() {this->disappearence=0;}
+	bool is_disappeared() {return this->disappeared;}
+	void kill() {this->disappeared = true;}
+
+	vector<Point2f> get_trace() {return this->trace;}
+	Scalar get_color() {return this->color;}
+
 private:
 
 	// The human id
@@ -53,10 +62,16 @@ private:
 	Mat histogram;
 
 	// Acceptable error when computing people position
-	double position_error = 2.0;
+	double position_error = 50;
 
 	// Color of this human
 	Scalar color;
+
+	// Counter to check if the user has exited the scene
+	int disappearence;
+
+	// Set to true if the user disappeared
+	bool disappeared;
 
 };
 
