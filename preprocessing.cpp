@@ -189,7 +189,8 @@ vector<Point2f> FindPeople::track_people_optical(cv::Mat previous, cv::Mat curre
 			// near the side of the frame, then we assume that it is
 			// a new guy entering the scene
 			float distance_left = abs(p.x-current.cols);
-			float distance_right = current.rows - abs(p.x-current.cols);
+			float distance_right = current.cols - abs(p.x-current.cols);
+
 			if (!found
 				&& (distance_left < this->border_threshold
 				|| distance_right < this->border_threshold))

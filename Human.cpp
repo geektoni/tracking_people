@@ -21,7 +21,7 @@ bool Human::is_the_same(const Point2f position)
 	// Compute distance between points
 	float distance = sqrt(pow(this->current_position.x-position.x, 2)+pow(this->current_position.y-position.y,2));
 
-	std::cout << distance << std::endl;
+	//std::cout << distance << std::endl;
 
 	return !(distance > this->position_error);
 }
