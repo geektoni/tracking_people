@@ -81,3 +81,28 @@ void Human::initialize_kalman(double x, double y)
 	setIdentity(kalman.measurementNoiseCov, Scalar::all(1e-3));
 	setIdentity(kalman.errorCovPost, Scalar::all(0.1));
 }
+
+Mat Human::compute_histogram(const Mat & frame, const std::vector<cv::Point> &contour) {
+
+	// Compute the mask for the given contour
+	Mat mask;
+	Human::convertContourToMask(contour, mask);
+
+	int channels[] = {1,2,3};
+
+	// Quantize the hue to 30 levels
+	// and the saturation to 32 levels
+	int histSize[] = {100, 100, 100};
+
+	// Color ranges
+	float range[] = {0,256};
+	const float* ranges[] = {range, range, range};
+
+	// Compute the actual histogram
+	Mat histo;
+	calcHist( &frame, 1, channels, mask,
+			  histo, 2, histSize, ranges,
+			  true, // the histogram is uniform
+			  false );
+	return histo;
+}

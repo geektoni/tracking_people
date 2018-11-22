@@ -77,6 +77,28 @@ public:
 
 	Mat get_histogram() {return histogram;}
 
+	void set_histogram(const Mat & histogram) {histogram.copyTo(this->histogram);}
+
+	static Mat compute_histogram(const Mat & frame, const std::vector<cv::Point> &contour);
+
+	/**
+ * Converts a contour to a binary mask.
+ * The parameter mask should be a matrix of type CV_8UC1 with proper
+ * size to hold the mask.
+ * @param contour The contour to convert.
+ * @param mask The Mat where the mask will be written. Must have proper size
+ * and type before callign convertContourToMask.
+ */
+	static void convertContourToMask( const std::vector<cv::Point>& contour, cv::Mat& mask )
+	{
+		std::vector<std::vector<cv::Point>> contoursVector;
+		contoursVector.push_back( contour );
+		cv::Scalar white = cv::Scalar(255);
+		cv::Scalar black = cv::Scalar(0);
+		mask.setTo(black);
+		cv::drawContours(mask, contoursVector, -1, white, CV_FILLED);
+	}
+
 private:
 
 	// The human id
@@ -88,7 +110,7 @@ private:
 	// Current position of the human
 	Point2f current_position;
 
-	// Histogram of the current person (may be useless though)
+	// Histogram of the current person
 	Mat histogram;
 
 	// Acceptable error when computing people position

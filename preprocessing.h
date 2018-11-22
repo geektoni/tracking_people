@@ -69,24 +69,6 @@ public:
 	 */
 	static cv::vector<cv::Point2f> compute_centroids(const cv::vector<cv::vector<cv::Point>> & contours);
 
-		/**
-	 * Converts a contour to a binary mask.
-	 * The parameter mask should be a matrix of type CV_8UC1 with proper
-	 * size to hold the mask.
-	 * @param contour The contour to convert.
-	 * @param mask The Mat where the mask will be written. Must have proper size
-	 * and type before callign convertContourToMask.
-	 */
-	void convertContourToMask( const std::vector<cv::Point>& contour, cv::Mat& mask )
-	{
-		std::vector<std::vector<cv::Point>> contoursVector;
-		contoursVector.push_back( contour );
-		cv::Scalar white = cv::Scalar(255);
-		cv::Scalar black = cv::Scalar(0);
-		mask.setTo(black);
-		cv::drawContours(mask, contoursVector, -1, white, CV_FILLED);
-	}
-
 private:
 
 	/**
