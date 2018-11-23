@@ -51,7 +51,7 @@ public:
 
 	void update_humans(cv::vector<cv::Point2f> points, int frame_size);
 
-	void update_humans_kalman(cv::vector<cv::Point2f> points, int frame_size);
+	void update_humans_kalman(cv::Mat current, cv::vector<cv::Point2f> points, int frame_size, cv::vector<cv::vector<cv::Point>> &_contours, const cv::vector<cv::Rect> & _boundRect);
 
 	cv::vector<Human> return_humans() {return this->humans_tracked;}
 

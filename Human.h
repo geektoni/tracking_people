@@ -24,7 +24,7 @@ public:
 	 * @param position the position given
 	 * @return true if they are close enough, false otherwise
 	 */
-	bool is_the_same(const Point2f position);
+	bool is_the_same(const Point2f position, const Mat & contour_histogram=Mat());
 
 	/**
 	 * Add the given point to the trace for this user
@@ -77,9 +77,9 @@ public:
 
 	Mat get_histogram() {return histogram;}
 
-	void set_histogram(const Mat & histogram) {histogram.copyTo(this->histogram);}
+	void set_histogram(const Mat & frame, const std::vector<cv::Point> &contour, const cv::Rect & _boundRect) {histogram=Human::compute_histogram(frame, contour,_boundRect);}
 
-	static Mat compute_histogram(const Mat & frame, const std::vector<cv::Point> &contour);
+	static Mat compute_histogram(const Mat & frame, const std::vector<cv::Point> &contour, const cv::Rect & _boundRect);
 
 	/**
  * Converts a contour to a binary mask.
@@ -111,7 +111,7 @@ private:
 	Point2f current_position;
 
 	// Histogram of the current person
-	Mat histogram;
+	Mat_<float> histogram;
 
 	// Acceptable error when computing people position
 	double position_error = 50;
@@ -130,6 +130,9 @@ private:
 
 	// Prediction point
 	Point2f predicted_point;
+
+	// histogram threshold
+	double histogram_threshold = 0.2;
 
 };
 

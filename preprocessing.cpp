@@ -163,7 +163,7 @@ void FindPeople::track_people_kalman(cv::Mat current, cv::vector<cv::vector<cv::
 	//vector<Point2f> points =  compute_center(_boundRect);
 
 	// Update the humans using their own kalman filter
-	this->update_humans_kalman(points, current.cols);
+	this->update_humans_kalman(current, points, current.cols, _contours, _boundRect);
 }
 
 vector<Point2f> FindPeople::compute_center(const cv::vector<cv::Rect> & _boundRect)
@@ -197,17 +197,19 @@ cv::vector<cv::Point2f> FindPeople::compute_centroids(const cv::vector<cv::vecto
 	return mc;
 }
 
-void FindPeople::update_humans_kalman(cv::vector<cv::Point2f> points, int frame_size)
+void FindPeople::update_humans_kalman(cv::Mat current, cv::vector<cv::Point2f> points, int frame_size, cv::vector<cv::vector<cv::Point>> &_contours, const cv::vector<cv::Rect> & _boundRect)
 {
 	// If this is the first run, we add the users into the array
 	if (this->humans_tracked.size()==0)
 	{
-		for (Point2f p : points)
+		for (int i=0; i<points.size(); i++)
 		{
+			Point2f p = points[i];
 			Human tmp(this->counter++);
 			tmp.update_position(p);
 			tmp.add_to_trace(p);
 			tmp.initialize_kalman(p.x, p.y);
+			tmp.set_histogram(current, _contours[i], _boundRect[i]);
 			this->humans_tracked.push_back(tmp);
 		}
 
@@ -224,10 +226,15 @@ void FindPeople::update_humans_kalman(cv::vector<cv::Point2f> points, int frame_
 		}
 
 		// Check if we can pair points to their user
-		for (Point2f p : points)
+		for (int i=0; i<points.size(); i++)
 		{
+			Point2f p = points[i];
+
 			// We assume that this point has not been paired
 			bool found=false;
+
+			// Get the hisotgram of this specific point
+			Mat_<float> histo_p = Human::compute_histogram(current, _contours[i], _boundRect[i]);
 
 			// The human which will be nearer to the point will
 			// take it as its own.
@@ -242,7 +249,8 @@ void FindPeople::update_humans_kalman(cv::vector<cv::Point2f> points, int frame_
 
 					// If we have found a corresponding "human",
 					// then we update its position and trace.
-					if (h.is_the_same(p)) {
+					// We check for its histogram and distance from the actual point
+					if (h.is_the_same(p, histo_p)) {
 						if (!(winner_distance > h.get_distance_from(p)))
 						{
 							winner_distance = h.get_distance_from(p);
@@ -262,6 +270,9 @@ void FindPeople::update_humans_kalman(cv::vector<cv::Point2f> points, int frame_
 				winner_human->update_position(predicted);
 				winner_human->add_to_trace(predicted);
 				winner_human->reset_disappearence();
+
+				// Update the histogram in order to account for change in position
+				winner_human->set_histogram(current, _contours[i], _boundRect[i]);
 			}
 
 			// If this point has not been found and if it reasonably
@@ -278,6 +289,7 @@ void FindPeople::update_humans_kalman(cv::vector<cv::Point2f> points, int frame_
 				tmp.update_position(p);
 				tmp.add_to_trace(p);
 				tmp.initialize_kalman(p.x, p.y);
+				tmp.set_histogram(current, _contours[i], _boundRect[i]);
 				this->humans_tracked.push_back(tmp);
 			}
 		}

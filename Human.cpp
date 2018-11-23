@@ -20,12 +20,20 @@ Human::Human(int id)
 	kalman = KalmanFilter(6,2,0);
 }
 
-bool Human::is_the_same(const Point2f position)
+bool Human::is_the_same(const Point2f position, const Mat & contour_histogram)
 {
 	// Compute distance between points
 	float distance = sqrt(pow(this->current_position.x-position.x, 2)+pow(this->current_position.y-position.y,2));
 
-	return !(distance > this->position_error);
+	// Compute histogram difference if the contour_histogram provided is not empty
+	float histo_distance = -1;
+
+	if (!contour_histogram.empty()) {
+		histo_distance = compareHist(contour_histogram, this->histogram, CV_COMP_CORREL);
+		std::cout << histo_distance << std::endl;
+	}
+
+	return !(distance > this->position_error) && !(histo_distance < this->histogram_threshold);
 }
 
 void Human::add_to_trace(const Point2f point)
@@ -82,11 +90,17 @@ void Human::initialize_kalman(double x, double y)
 	setIdentity(kalman.errorCovPost, Scalar::all(0.1));
 }
 
-Mat Human::compute_histogram(const Mat & frame, const std::vector<cv::Point> &contour) {
+Mat Human::compute_histogram(const Mat & frame, const std::vector<cv::Point> &contour, const cv::Rect & _boundRect) {
 
 	// Compute the mask for the given contour
-	Mat mask;
+	Mat mask = Mat::zeros(frame.rows, frame.cols, CV_8UC1);
 	Human::convertContourToMask(contour, mask);
+
+	//imshow("Contour", mask);
+	//waitKey(100000);
+
+	// Crop the frame
+	//Mat frame_cropped(frame, _boundRect);
 
 	int channels[] = {1,2,3};
 
@@ -95,14 +109,13 @@ Mat Human::compute_histogram(const Mat & frame, const std::vector<cv::Point> &co
 	int histSize[] = {100, 100, 100};
 
 	// Color ranges
-	float range[] = {0,256};
+	float range[] = {0,255};
 	const float* ranges[] = {range, range, range};
 
 	// Compute the actual histogram
-	Mat histo;
-	calcHist( &frame, 1, channels, mask,
-			  histo, 2, histSize, ranges,
-			  true, // the histogram is uniform
-			  false );
+	Mat_<float> histo;
+	calcHist(&frame, 1, channels, mask,
+			  histo, 2, histSize, ranges);
+
 	return histo;
 }
