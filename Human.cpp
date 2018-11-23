@@ -28,9 +28,10 @@ bool Human::is_the_same(const Point2f position, const Mat & contour_histogram)
 	// Compute histogram difference if the contour_histogram provided is not empty
 	float histo_distance = -1;
 
+	// If the contour histogram is not empty, then we can compare the "humans"
+	// by looking at their histogram
 	if (!contour_histogram.empty()) {
 		histo_distance = compareHist(contour_histogram, this->histogram, CV_COMP_CORREL);
-		std::cout << histo_distance << std::endl;
 	}
 
 	return !(distance > this->position_error) && !(histo_distance < this->histogram_threshold);
@@ -96,12 +97,7 @@ Mat Human::compute_histogram(const Mat & frame, const std::vector<cv::Point> &co
 	Mat mask = Mat::zeros(frame.rows, frame.cols, CV_8UC1);
 	Human::convertContourToMask(contour, mask);
 
-	//imshow("Contour", mask);
-	//waitKey(100000);
-
-	// Crop the frame
-	//Mat frame_cropped(frame, _boundRect);
-
+	// Channel we want to use
 	int channels[] = {1,2,3};
 
 	// Quantize the hue to 30 levels

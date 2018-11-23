@@ -1,5 +1,5 @@
 /*
-* Written (W) 2018 uriel
+* Written (W) 2018 Giovanni De Toni
 */
 
 #ifndef TRACKING_PEOPLE_HUMAN_H
@@ -38,31 +38,29 @@ public:
 	 */
 	void update_position(const Point2f position);
 
-	int get_disappearence() {return this->disappearence;}
-	void update_disappearence() {this->disappearence++;}
-	void reset_disappearence() {this->disappearence=0;}
-	bool is_disappeared() {return this->disappeared;}
-	void kill() {this->disappeared = true;}
-
+	/**
+	 * Compute the euclidean distance between the human current position and a point
+	 * @param position the new position
+	 * @return euclidean distance
+	 */
 	float get_distance_from(const Point2f position)
 	{
 		return sqrt(pow(this->current_position.x-position.x, 2)+pow(this->current_position.y-position.y,2));
 	}
 
-	vector<Point2f> get_trace() {return this->trace;}
-	Scalar get_color() {return this->color;}
-	int get_id() {return this->id;}
-	Point2f get_current_position() {return this->current_position;}
-
-	void initialize_kalman(double x, double y);
-
-	KalmanFilter & get_kalman() {return kalman;}
-
+	/**
+	 * Predict step of the Kalman Filter
+	 */
 	void predict() {
 		Mat pred = kalman.predict();
 		predicted_point = Point2f(pred.at<float>(0), pred.at<float>(1));
 	}
 
+	/**
+	 * Error correction step of the Kalman Filter given a measured point
+	 * @param measured the measured point
+	 * @return the corrected estimate
+	 */
 	Point2f correct(const Point2f measured)
 	{
 		Mat_<float> measurement(2,1);
@@ -73,22 +71,33 @@ public:
 		return Point2f(est.at<float>(0), est.at<float>(1));
 	}
 
-	Point2f get_predicted_point() {return predicted_point;}
+	/**
+	 * Compute and set the histogram for this human.
+	 * @param frame the current frame
+	 * @param contour the contour selected
+	 * @param _boundRect the bounding rectangle of the contour
+	 */
+	void set_histogram(const Mat & frame, const std::vector<cv::Point> &contour,
+					   const cv::Rect & _boundRect)
+	{histogram=Human::compute_histogram(frame, contour,_boundRect);}
 
-	Mat get_histogram() {return histogram;}
-
-	void set_histogram(const Mat & frame, const std::vector<cv::Point> &contour, const cv::Rect & _boundRect) {histogram=Human::compute_histogram(frame, contour,_boundRect);}
-
+	/**
+	 * Static method to compute the histogram of a given ROI.
+	 * @param frame the current video frame
+	 * @param contour the ROI contour
+	 * @param _boundRect the bounding box of the contour
+	 * @return the histogram
+	 */
 	static Mat compute_histogram(const Mat & frame, const std::vector<cv::Point> &contour, const cv::Rect & _boundRect);
 
 	/**
- * Converts a contour to a binary mask.
- * The parameter mask should be a matrix of type CV_8UC1 with proper
- * size to hold the mask.
- * @param contour The contour to convert.
- * @param mask The Mat where the mask will be written. Must have proper size
- * and type before callign convertContourToMask.
- */
+ 	* Converts a contour to a binary mask.
+ 	* The parameter mask should be a matrix of type CV_8UC1 with proper
+ 	* size to hold the mask.
+ 	* @param contour The contour to convert.
+ 	* @param mask The Mat where the mask will be written. Must have proper size
+ 	* and type before callign convertContourToMask.
+ 	*/
 	static void convertContourToMask( const std::vector<cv::Point>& contour, cv::Mat& mask )
 	{
 		std::vector<std::vector<cv::Point>> contoursVector;
@@ -98,6 +107,21 @@ public:
 		mask.setTo(black);
 		cv::drawContours(mask, contoursVector, -1, white, CV_FILLED);
 	}
+
+	/* General getter and setters */
+	int get_disappearence() {return this->disappearence;}
+	void update_disappearence() {this->disappearence++;}
+	void reset_disappearence() {this->disappearence=0;}
+	bool is_disappeared() {return this->disappeared;}
+	vector<Point2f> get_trace() {return this->trace;}
+	Scalar get_color() {return this->color;}
+	int get_id() {return this->id;}
+	Point2f get_current_position() {return this->current_position;}
+	void initialize_kalman(double x, double y);
+	KalmanFilter & get_kalman() {return kalman;}
+	Point2f get_predicted_point() {return predicted_point;}
+	Mat get_histogram() {return histogram;}
+	void kill() {this->disappeared = true;}
 
 private:
 
@@ -114,7 +138,7 @@ private:
 	Mat_<float> histogram;
 
 	// Acceptable error when computing people position
-	double position_error = 50;
+	double position_error = 40;
 
 	// Color of this human
 	Scalar color;
