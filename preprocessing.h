@@ -40,9 +40,8 @@ public:
 	 * @param current current frame (at time step t)
 	 * @param _contours the contours of the people found on the frame
 	 * @param _boundRect the bounding boxes computed from the contours
-	 * @return the set of next points
 	 */
-	cv::vector<cv::Point2f> track_people_optical(cv::Mat previous, cv::Mat current,
+	void track_people_optical(cv::Mat previous, cv::Mat current,
 												 cv::vector<cv::vector<cv::Point>> & _contours,
 												 cv::vector<cv::Rect> & _boundRect);
 

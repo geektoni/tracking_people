@@ -130,7 +130,7 @@ cv::Mat FindPeople::find_contours(const cv::Mat input, const cv::Mat original_in
 	return drawing;
 }
 
-vector<Point2f> FindPeople::track_people_optical(cv::Mat previous, cv::Mat current, cv::vector<cv::vector<cv::Point>> & _contours,
+void FindPeople::track_people_optical(cv::Mat previous, cv::Mat current, cv::vector<cv::vector<cv::Point>> & _contours,
 							 cv::vector<cv::Rect> & _boundRect) {
 
 	vector<uchar> status;
@@ -150,8 +150,6 @@ vector<Point2f> FindPeople::track_people_optical(cv::Mat previous, cv::Mat curre
 
 	// Update the human positions and labels
 	this->update_humans(result, current.cols);
-
-	return result;
 }
 
 void FindPeople::track_people_kalman(cv::Mat current, cv::vector<cv::vector<cv::Point>> &_contours,

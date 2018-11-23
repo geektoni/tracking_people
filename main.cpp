@@ -86,7 +86,7 @@ int main(int argc, char ** argv) {
 
 		if (!previous.empty())
 		{
-			//next_centers = bg_rem.track_people_optical(previous, frame, contours, boundRect);
+			//bg_rem.track_people_optical(previous, frame, contours, boundRect);
 			bg_rem.track_people_kalman(frame, contours, boundRect);
 
 			// Get the tracked humans
