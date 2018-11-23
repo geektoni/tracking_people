@@ -122,6 +122,8 @@ public:
 	Point2f get_predicted_point() {return predicted_point;}
 	Mat get_histogram() {return histogram;}
 	void kill() {this->disappeared = true;}
+	bool has_decided() {return this->has_decided_next;}
+	void set_decided(bool hasde) {this->has_decided_next=hasde;}
 
 private:
 
@@ -157,6 +159,9 @@ private:
 
 	// histogram threshold
 	double histogram_threshold = 0.2;
+
+	// flag to check if it has get the new point
+	bool has_decided_next;
 
 };
 

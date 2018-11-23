@@ -214,12 +214,14 @@ void FindPeople::update_humans_kalman(cv::Mat current, cv::vector<cv::Point2f> p
 	} else {
 
 		// For each human detected during the previous phase,
-		// run the kalman and predict the next position
+		// run the kalman and predict the next position.
+		// Set also the decision flag to false
 		for (Human & h : this->humans_tracked)
 		{
 			if (!h.is_disappeared())
 			{
 				h.predict();
+				h.set_decided(false);
 			}
 		}
 
@@ -241,7 +243,8 @@ void FindPeople::update_humans_kalman(cv::Mat current, cv::vector<cv::Point2f> p
 			for (Human & h : this->humans_tracked)
 			{
 				// We can only check for users that are still in the scene
-				if (!h.is_disappeared()) {
+				// and that have not already decided their next points
+				if (!h.is_disappeared() && !h.has_decided()) {
 					// We increment the disappearence rate for this user
 					h.update_disappearence();
 
@@ -268,6 +271,8 @@ void FindPeople::update_humans_kalman(cv::Mat current, cv::vector<cv::Point2f> p
 				winner_human->update_position(predicted);
 				winner_human->add_to_trace(predicted);
 				winner_human->reset_disappearence();
+
+				winner_human->set_decided(true);
 
 				// Update the histogram in order to account for change in position
 				winner_human->set_histogram(current, _contours[i], _boundRect[i]);

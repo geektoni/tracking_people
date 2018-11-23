@@ -12,6 +12,7 @@ Human::Human(int id)
 	this->id = id;
 	this->disappeared = false;
 	this->disappearence = 0;
+	this->has_decided_next = false;
 
 	// Set a random color
 	color = Scalar (rand()%255, rand()%255, rand()%255);
