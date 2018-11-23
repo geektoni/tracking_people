@@ -10,7 +10,7 @@
 using namespace cv;
 
 FindPeople::FindPeople(bool preprocess_shadows) {
-	this->pGMM = new BackgroundSubtractorMOG2(300, 350, true);
+	this->pGMM = new BackgroundSubtractorMOG2(100, 350, true);
 	this->preprocess_shadows = preprocess_shadows;
 }
 
