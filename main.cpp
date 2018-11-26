@@ -16,10 +16,11 @@
 using namespace cv;
 using namespace std;
 
-const char * keys = "{help h usage ?||Print this message.}"
-		"{f|| Path to the video that has to be analyzed.}"
-		"{alg |kalman| Which tracking algorithm will be used, can be 'opticalflow' or 'kalman'. Default is 'kalman'.}"
-		"{start|1| Start to track/detect objects only from a specific frame. Default is 1.}";
+const char * keys = "{h | help | | Print this message.}"
+		"{f |file| | Path to the video that has to be analyzed.}"
+		"{a |alg| kalman | Which tracking algorithm will be used, can be 'opticalflow' or 'kalman'. Default is 'kalman'.}"
+		"{s|start | 1 | Start to track/detect objects only from a specific frame. Default is 1.}"
+		"{sh|remove_shadow | true | Choose if we want to remove shadow with HSV or just use MOG2 capabilities.}";
 
 int main(int argc, char ** argv) {
 
@@ -34,6 +35,9 @@ int main(int argc, char ** argv) {
 
 	// Get which algorithm we want to use
 	string track_algo = parser.get<string>("alg");
+
+	// Remove the shadows using HSV
+	bool remove_shadow = parser.get<bool>("remove_shadow");
 
 	// Open the video and check if it is correct
 	// otherwise return with an error.
@@ -53,7 +57,7 @@ int main(int argc, char ** argv) {
 	Mat fg_copy;
 
 	// Background Remover object
-	FindPeople bg_rem;
+	FindPeople bg_rem(remove_shadow);
 
 	// Contours;
 	vector<vector<Point>> contours;
