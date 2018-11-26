@@ -46,11 +46,11 @@ public:
 												 cv::vector<cv::Rect> & _boundRect);
 
 	void track_people_kalman(cv::Mat current, cv::vector<cv::vector<cv::Point>> & _contours,
-							 cv::vector<cv::Rect> & _boundRect);
+							 cv::vector<cv::Rect> & _boundRect, const int frame_count);
 
 	void update_humans(cv::vector<cv::Point2f> points, int frame_size);
 
-	void update_humans_kalman(cv::Mat current, cv::vector<cv::Point2f> points, int frame_size, cv::vector<cv::vector<cv::Point>> &_contours, const cv::vector<cv::Rect> & _boundRect);
+	void update_humans_kalman(cv::Mat current, cv::vector<cv::Point2f> points, int frame_size, cv::vector<cv::vector<cv::Point>> &_contours, const cv::vector<cv::Rect> & _boundRect, const int frame_count);
 
 	cv::vector<Human> return_humans() {return this->humans_tracked;}
 
@@ -95,6 +95,9 @@ private:
 
 	// border threshold
 	int border_threshold = 20;
+
+	// initial frame detection threshold
+	int frame_detection_threshold = 10;
 };
 
 #endif //TRACKING_PEOPLE_SHADOW_REMOVAL_H

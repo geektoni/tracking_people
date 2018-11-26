@@ -153,7 +153,7 @@ void FindPeople::track_people_optical(cv::Mat previous, cv::Mat current, cv::vec
 }
 
 void FindPeople::track_people_kalman(cv::Mat current, cv::vector<cv::vector<cv::Point>> &_contours,
-									 cv::vector<cv::Rect> &_boundRect)
+									 cv::vector<cv::Rect> &_boundRect, const int frame_count)
 {
 	// Compute centroids for each of the points
 	// and store them into an array.
@@ -161,7 +161,7 @@ void FindPeople::track_people_kalman(cv::Mat current, cv::vector<cv::vector<cv::
 	//vector<Point2f> points =  compute_center(_boundRect);
 
 	// Update the humans using their own kalman filter
-	this->update_humans_kalman(current, points, current.cols, _contours, _boundRect);
+	this->update_humans_kalman(current, points, current.cols, _contours, _boundRect, frame_count);
 }
 
 vector<Point2f> FindPeople::compute_center(const cv::vector<cv::Rect> & _boundRect)
@@ -195,7 +195,10 @@ cv::vector<cv::Point2f> FindPeople::compute_centroids(const cv::vector<cv::vecto
 	return mc;
 }
 
-void FindPeople::update_humans_kalman(cv::Mat current, cv::vector<cv::Point2f> points, int frame_size, cv::vector<cv::vector<cv::Point>> &_contours, const cv::vector<cv::Rect> & _boundRect)
+void FindPeople::update_humans_kalman(cv::Mat current,
+									  cv::vector<cv::Point2f> points, int frame_size,
+									  cv::vector<cv::vector<cv::Point>> &_contours,
+									  const cv::vector<cv::Rect> & _boundRect, const int frame_count)
 {
 	// If this is the first run, we add the users into the array
 	if (this->humans_tracked.size()==0)
@@ -286,7 +289,8 @@ void FindPeople::update_humans_kalman(cv::Mat current, cv::vector<cv::Point2f> p
 
 			if (!found
 				&& (distance_left < this->border_threshold
-					|| distance_right < this->border_threshold))
+					|| distance_right < this->border_threshold
+								   || frame_detection_threshold < frame_count))
 			{
 				Human tmp(this->counter++);
 				tmp.update_position(p);
