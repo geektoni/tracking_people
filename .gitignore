@@ -93,4 +93,4 @@ cmake-*
 *.csv
 
 report/*
-!report/A1_report.tex
+!report/A1_Report.tex
