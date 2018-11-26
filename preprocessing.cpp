@@ -290,7 +290,7 @@ void FindPeople::update_humans_kalman(cv::Mat current,
 			if (!found
 				&& (distance_left < this->border_threshold
 					|| distance_right < this->border_threshold
-								   || frame_detection_threshold < frame_count))
+								   || frame_detection_threshold >= frame_count))
 			{
 				Human tmp(this->counter++);
 				tmp.update_position(p);
