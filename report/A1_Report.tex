@@ -26,7 +26,7 @@
 % First names are abbreviated in the running head.
 % If there are more than two authors, 'et al.' is used.
 %
-\institute{University of Trento, \email{giovanni.detoni@studenti.unitn.it}}
+\institute{University of Trento, Italy, \email{giovanni.detoni@studenti.unitn.it}}
 %
 \maketitle              % typeset the header of the contribution
 %
@@ -34,17 +34,35 @@
 The abstract should briefly summarize the contents of the paper in
 150--250 words.
 
-\keywords{First keyword  \and Second keyword \and Another keyword.}
+\keywords{Tracking \and Detection  \and MOG \and Background Subtraction \and Kalman Filter \and OpenCV}
 \end{abstract}
 %
 %
 %
 \section{Introduction}
-People detection and their subsequent tracking is a relatively easy task for humans, however, when dealing with a computer video system things becomes much more complicated. The need to recognize and follow people by just looking at a video recording has become one important task which has many real-world applications. If we just think about the surveillance systems, we recognize immediately its importance.
+People detection and their subsequent tracking is a relatively easy task for humans, however, when dealing with a computer video system things becomes much more complicated. Computers and video cameras are not real people and they do not possess our capability to easily recognize objects and subsequent track their motion.  The need to recognize and follow people by just looking at a video recording has become one important task which has many real-world applications. We can enumerate a few of them: surveillance systems, autonomous vehicles, etc. 
+
 \section{Related Works}
+
 \section{Methods}
-\subsection{Shadow Removal}
-\subsection{People Detection}
+
+The detection/tracking process was divided into several steps, each of them dealing with a specific issue/task. Moreover, the procedure was devised in order to use simple algorithms in order to provide a relatively easy-to-use system that requires a moderate computational power in order to be applied to real-time systems. The processing pipeline works as follow:
+\begin{enumerate}
+\item Shadow removal and Background Subtraction;
+\item Feature extraction from the selected contours (centroids+histogram);
+\item Prediction of their position/motion by using the Kalman Filter;
+\end{enumerate}
+
+\subsection{Objects (Humans) Detection}
+The detection of motion and of the pedestrian was composed by two separate tasks: shadow removal and background subtraction.
+At the end of the procedure, for each frame, a set of contours $C$ was generated. These contours represented the moving object detected
+by the algorithm in that specific video frame. 
+
+\subsubsection{Shadow Removal}
+
+Shadows are defined as a variation of luminance of a particular area of a specific video frame. They are a source of trouble when we need to detect the motion of objects in a video recording. A shadow usually cannot be distinguished from the real object casting it and therefore it is recognized as a moving part of the video. Intelligent shadows detection and removal is still an ongoing research topic since there is no way to perfectly avoid them.  
+
+\subsubsection{People Detection}
 \subsection{People Tracking}
 \section{Experiments and Results}
 \section{Conclusions}
