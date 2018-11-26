@@ -9,39 +9,47 @@
 
 using namespace cv;
 
+/**
+ * This class represent a human detected by the algorithm.
+ * Each human has an unique id, a vector contains its own position
+ * during the video and an histogram representation useful to
+ * discriminate him from the other humans.
+ */
 class Human {
 
 public:
 
 	/**
-	 * Constructor
-	 * @param id person unique identifier
+	 * Constructor.
+	 * @param id person unique identifier.
 	 */
 	Human(int id);
 
 	/**
-	 * Check if the human placed in that position could be us
-	 * @param position the position given
-	 * @return true if they are close enough, false otherwise
+	 * Check if the human placed in that position could be us.
+	 * @param position the position given (center of the idenfified contour)
+	 * @param contour_histogram the histogram of the contour (can be left blank,
+	 * the the algorithm will check only the distance metric).
+	 * @return true if they are close enough, false otherwise.
 	 */
 	bool is_the_same(const Point2f position, const Mat & contour_histogram=Mat());
 
 	/**
-	 * Add the given point to the trace for this user
+	 * Add the given point to the trace for this user.
 	 * @param point coordinate point
 	 */
 	void add_to_trace(const Point2f point);
 
 	/**
-	 * Update the position of this human
+	 * Update the position of this human.
 	 * @param position given position.
 	 */
 	void update_position(const Point2f position);
 
 	/**
-	 * Compute the euclidean distance between the human current position and a point
-	 * @param position the new position
-	 * @return euclidean distance
+	 * Compute the euclidean distance between the human current position and a point.
+	 * @param position the new position.
+	 * @return euclidean distance.
 	 */
 	float get_distance_from(const Point2f position)
 	{
@@ -49,7 +57,7 @@ public:
 	}
 
 	/**
-	 * Predict step of the Kalman Filter
+	 * Predict step of the Kalman Filter.
 	 */
 	void predict() {
 		Mat pred = kalman.predict();
@@ -57,9 +65,9 @@ public:
 	}
 
 	/**
-	 * Error correction step of the Kalman Filter given a measured point
-	 * @param measured the measured point
-	 * @return the corrected estimate
+	 * Error correction step of the Kalman Filter given a measured point.
+	 * @param measured the measured point.
+	 * @return the corrected estimate.
 	 */
 	Point2f correct(const Point2f measured)
 	{
@@ -73,9 +81,9 @@ public:
 
 	/**
 	 * Compute and set the histogram for this human.
-	 * @param frame the current frame
-	 * @param contour the contour selected
-	 * @param _boundRect the bounding rectangle of the contour
+	 * @param frame the current frame.
+	 * @param contour the contour selected.
+	 * @param _boundRect the bounding rectangle of the contour.
 	 */
 	void set_histogram(const Mat & frame, const std::vector<cv::Point> &contour,
 					   const cv::Rect & _boundRect)
@@ -83,10 +91,10 @@ public:
 
 	/**
 	 * Static method to compute the histogram of a given ROI.
-	 * @param frame the current video frame
-	 * @param contour the ROI contour
-	 * @param _boundRect the bounding box of the contour
-	 * @return the histogram
+	 * @param frame the current video frame.
+	 * @param contour the ROI contour.
+	 * @param _boundRect the bounding box of the contour.
+	 * @return the computed histogram.
 	 */
 	static Mat compute_histogram(const Mat & frame, const std::vector<cv::Point> &contour, const cv::Rect & _boundRect);
 
@@ -96,7 +104,7 @@ public:
  	* size to hold the mask.
  	* @param contour The contour to convert.
  	* @param mask The Mat where the mask will be written. Must have proper size
- 	* and type before callign convertContourToMask.
+ 	* and type before calling convertContourToMask.
  	*/
 	static void convertContourToMask( const std::vector<cv::Point>& contour, cv::Mat& mask )
 	{
@@ -142,10 +150,13 @@ private:
 	// Acceptable error when computing people position
 	double position_error = 40;
 
-	// Color of this human
+	// Color of this human (randomly initialized)
+	// It is used just for data visualization purposes.
 	Scalar color;
 
-	// Counter to check if the user has exited the scene
+	// Counter to check if the user has exited the scene.
+	// It represent how many frame passed since the last
+	// time we detected him.
 	int disappearence;
 
 	// Set to true if the user disappeared
@@ -157,10 +168,10 @@ private:
 	// Prediction point
 	Point2f predicted_point;
 
-	// histogram threshold
+	// Histogram threshold
 	double histogram_threshold = 0.2;
 
-	// flag to check if it has get the new point
+	// Flag to check if it has get the new point
 	bool has_decided_next;
 
 };

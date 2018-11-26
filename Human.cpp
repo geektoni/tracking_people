@@ -1,5 +1,5 @@
 /*
-* Written (W) 2018 uriel
+* Written (W) 2018 Giovanni De Toni
 */
 
 #include "Human.h"
