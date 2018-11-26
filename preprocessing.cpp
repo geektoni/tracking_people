@@ -14,10 +14,6 @@ FindPeople::FindPeople(bool preprocess_shadows) {
 	this->preprocess_shadows = preprocess_shadows;
 }
 
-/**
- * https://lowweilin.wordpress.com/2014/08/07/image-background-and-shadow-removal/
- * https://stackoverflow.com/questions/20542352/automatic-approach-for-removing-colord-object-shadow-on-white-background
- */
 Mat FindPeople::shadow_removal(const Mat frame)
 {
 	Mat tmp_frame;
