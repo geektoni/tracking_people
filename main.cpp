@@ -11,12 +11,6 @@
 using namespace cv;
 using namespace std;
 
-#define drawCross(img, center, color, d )                                 \
-line( img, Point( center.x - d, center.y - d ),                \
-Point( center.x + d, center.y + d ), color, 2, CV_AA, 0); \
-line( img, Point( center.x + d, center.y - d ),                \
-Point( center.x - d, center.y + d ), color, 2, CV_AA, 0 )
-
 int main(int argc, char ** argv) {
 
 	// Parse the command line and get the
@@ -84,10 +78,17 @@ int main(int argc, char ** argv) {
 		// displacement each 5 frame to have less noise.
 		frame.copyTo(tracking_lines);
 
+		// Start tracking only if we reached the starting frame
+		//if (frame_counter<1)
+		//{
+		//	frame_counter++;
+		//	continue;
+		//}
+
 		if (!previous.empty())
 		{
 			//bg_rem.track_people_optical(previous, frame, contours, boundRect);
-			bg_rem.track_people_kalman(frame, contours, boundRect);
+			bg_rem.track_people_kalman(frame, contours, boundRect, frame_counter);
 
 			// Get the tracked humans
 			auto humans = bg_rem.return_humans();
@@ -98,7 +99,13 @@ int main(int argc, char ** argv) {
 				// Check if the user is still there
 				if (!h.is_disappeared())
 				{
-					// Print the line
+					// Print the user id on top of all the humans detected
+					int rc_x = h.get_trace()[h.get_trace().size()-1].x;
+					int rc_y = h.get_trace()[h.get_trace().size()-1].y;
+					putText(lines_mask, to_string(h.get_id()), Point(rc_x, rc_y), FONT_HERSHEY_SIMPLEX,
+							1, Scalar(255,255,255), 2);
+
+					// Print the human track
 					for (int i=0, j=1; j<h.get_trace().size();)
 					{
 						line(lines_mask, h.get_trace()[i], h.get_trace()[j], h.get_color(), 3);
@@ -106,8 +113,8 @@ int main(int argc, char ** argv) {
 						i++;
 					}
 
-					// Print also the current position
-					drawCross(lines_mask, h.get_current_position(), h.get_color(), 5);
+					// Print also a cross indicating the current positions
+					drawMarker(lines_mask, h.get_current_position(), h.get_color());
 				}
 
 			}
