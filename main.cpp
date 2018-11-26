@@ -16,8 +16,9 @@
 using namespace cv;
 using namespace std;
 
-const char * keys =
-				"{help h usage ?||Print this message.}{f|| Path to the video that has to be analyzed.}";
+const char * keys = "{help h usage ?||Print this message.}"
+		"{f|| Path to the video that has to be analyzed.}"
+		"{start|1| Start to track/detect objects only from a specific frame.}";
 
 int main(int argc, char ** argv) {
 
@@ -26,6 +27,9 @@ int main(int argc, char ** argv) {
 
 	// Get the path to the video file
 	string video_path = parser.get<string>("f");
+
+	// Get the starting frame
+	int starting_frame = parser.get<int>("start");
 
 	// Open the video and check if it is correct
 	// otherwise return with an error.
@@ -65,6 +69,13 @@ int main(int argc, char ** argv) {
 		// Get the frame
 		video >> frame;
 
+		// Start tracking/detecting only if we reached the starting frame
+		if (frame_counter<starting_frame)
+		{
+			frame_counter++;
+			continue;
+		}
+
 		// Initialize the tracking mask
 		lines_mask = Mat::zeros(Size(frame.cols, frame.rows), CV_8UC3);
 
@@ -87,13 +98,6 @@ int main(int argc, char ** argv) {
 		// second frame. We also do the tracking by measuring the
 		// displacement each 5 frame to have less noise.
 		frame.copyTo(tracking_lines);
-
-		// Start tracking only if we reached the starting frame
-		//if (frame_counter<1)
-		//{
-		//	frame_counter++;
-		//	continue;
-		//}
 
 		if (!previous.empty())
 		{
