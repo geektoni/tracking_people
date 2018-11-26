@@ -141,13 +141,10 @@ int main(int argc, char * * argv) {
 				putText(lines_mask, to_string(h.human->get_id()), Point(rc_x, rc_y), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 255, 255), 2);
 
 				for (int k=0; k<total-(h.end-framec); k++) {
-					//cv::line(lines_mask, h.human->get_trace()[i], h.human->get_trace()[j], h.human->get_color(), 3);
+					cv::line(lines_mask, h.human->get_trace()[i], h.human->get_trace()[j], h.human->get_color(), 3);
 
-					//int rc_x = h.human->get_trace()[i].x;
-					//int rc_y = h.human->get_trace()[i].y;
-
-					//rectangle(lines_mask, Point(rc_x-2, rc_y-2), Point(rc_x+2, rc_y+2), Scalar(0,0,0), -1);
-					//putText(lines_mask, to_string(h.human->get_id()), Point(rc_x, rc_y), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 255, 255), 2);
+					int rc_x = h.human->get_trace()[i].x;
+					int rc_y = h.human->get_trace()[i].y;
 
 					j++;
 					i++;
