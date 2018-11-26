@@ -1,5 +1,10 @@
+/*
+* Written (W) 2018 Giovanni De Toni
+*/
+
 #include <iostream>
 #include <fstream>
+#include <memory>
 
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
@@ -11,19 +16,24 @@
 using namespace cv;
 using namespace std;
 
+const char * keys =
+				"{help h usage ?||Print this message.}{f|| Path to the video that has to be analyzed.}";
+
 int main(int argc, char ** argv) {
 
-	// Parse the command line and get the
-	// various arguments
-	std::vector<string> arguments {"-f"};
-	InputParser parser(argc, argv, arguments);
-	parser.parse();
+	// Intialize the command line parser
+	CommandLineParser parser(argc, argv, keys);
+
+	// Get the path to the video file
+	string video_path = parser.get<string>("f");
 
 	// Open the video and check if it is correct
 	// otherwise return with an error.
-	VideoCapture video(parser.get("-f"));
-	if (!video.isOpened())
+	VideoCapture video(video_path);
+	if (!video.isOpened()) {
+		delete keys;
 		return -1;
+	}
 
 	// Current frame
 	Mat frame, previous, lines_mask, tracking_lines, tracking;
@@ -166,6 +176,9 @@ int main(int argc, char ** argv) {
 
 	// Close the file
 	output.close();
+
+	// Free the pointer
+	delete keys;
 
 	return 0;
 }
