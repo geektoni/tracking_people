@@ -91,3 +91,5 @@ cmake-*
 
 
 *.csv
+
+report/
