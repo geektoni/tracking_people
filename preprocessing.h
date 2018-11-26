@@ -73,23 +73,6 @@ public:
 	void track_people_kalman(cv::Mat current, cv::vector<cv::vector<cv::Point>> & _contours,
 							 cv::vector<cv::Rect> & _boundRect, const int frame_count);
 
-	/**
-	 * Update human position.
-	 * @param points the centers of the blob found.
-	 * @param frame_size the size of the video (number of columns of the frame).
-	 */
-	void update_humans(cv::vector<cv::Point2f> points, int frame_size);
-
-	/**
-	 * Update human position using the Kalman filter.
-	 * @param current the current frame.
-	 * @param points the centers of the blob found.
-	 * @param frame_size the size of the video (number of columns of the frame).
-	 * @param _contours the contours found in the current frame.
-	 * @param _boundRect the bounding boxes of the contours found.
-	 * @param frame_count the current frame number.
-	 */
-	void update_humans_kalman(cv::Mat current, cv::vector<cv::Point2f> points, int frame_size, cv::vector<cv::vector<cv::Point>> &_contours, const cv::vector<cv::Rect> & _boundRect, const int frame_count);
 
 	/**
 	 * Return the humans tracked up to now.
@@ -127,6 +110,26 @@ private:
 	 * @return a vector of bounding boxes.
 	 */
 	cv::vector<cv::Rect> generate_bounding_boxes(const cv::vector<cv::vector<cv::Point>> & contours);
+
+	/**
+	 * Update human position.
+	 * @param points the centers of the blob found.
+	 * @param frame_size the size of the video (number of columns of the frame).
+	 */
+	void update_humans(cv::vector<cv::Point2f> points, int frame_size);
+
+	/**
+	 * Update human position using the Kalman filter.
+	 * @param current the current frame.
+	 * @param points the centers of the blob found.
+	 * @param frame_size the size of the video (number of columns of the frame).
+	 * @param _contours the contours found in the current frame.
+	 * @param _boundRect the bounding boxes of the contours found.
+	 * @param frame_count the current frame number.
+	 */
+	void update_humans_kalman(cv::Mat current, cv::vector<cv::Point2f> points, int frame_size,
+							  cv::vector<cv::vector<cv::Point>> &_contours,
+							  const cv::vector<cv::Rect> & _boundRect, const int frame_count);
 
 	/**
 	 * The background subtraction instance.
