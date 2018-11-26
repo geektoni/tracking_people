@@ -27,7 +27,7 @@ bool Human::is_the_same(const Point2f position, const Mat & contour_histogram)
 	float distance = sqrt(pow(this->current_position.x-position.x, 2)+pow(this->current_position.y-position.y,2));
 
 	// Compute histogram difference if the contour_histogram provided is not empty
-	float histo_distance = -1;
+	float histo_distance = this->histogram_threshold+1;
 
 	// If the contour histogram is not empty, then we can compare the "humans"
 	// by looking at their histogram

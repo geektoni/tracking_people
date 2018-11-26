@@ -317,10 +317,17 @@ void FindPeople::update_humans(cv::vector<cv::Point2f> result, int frame_size) {
 			Human tmp(this->counter++);
 			tmp.update_position(p);
 			tmp.add_to_trace(p);
+			tmp.set_decided(false);
 			this->humans_tracked.push_back(tmp);
 		}
 
 	} else {
+
+		// Reset human decision
+		for (Human & h : this->humans_tracked)
+		{
+			h.set_decided(false);
+		}
 
 		// Check if we can pair points to their user
 		for (Point2f p : result)
@@ -335,7 +342,7 @@ void FindPeople::update_humans(cv::vector<cv::Point2f> result, int frame_size) {
 			for (Human & h : this->humans_tracked)
 			{
 				// We can only check for users that are still in the scene
-				if (!h.is_disappeared()) {
+				if (!h.is_disappeared() && !h.has_decided()) {
 					// We increment the disappearence rate for this user
 					h.update_disappearence();
 
@@ -358,6 +365,7 @@ void FindPeople::update_humans(cv::vector<cv::Point2f> result, int frame_size) {
 				winner_human->update_position(p);
 				winner_human->add_to_trace(p);
 				winner_human->reset_disappearence();
+				winner_human->set_decided(true);
 			}
 
 			// If this point has not been found and if it reasonably

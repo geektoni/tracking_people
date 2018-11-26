@@ -18,7 +18,8 @@ using namespace std;
 
 const char * keys = "{help h usage ?||Print this message.}"
 		"{f|| Path to the video that has to be analyzed.}"
-		"{start|1| Start to track/detect objects only from a specific frame.}";
+		"{alg |kalman| Which tracking algorithm will be used, can be 'opticalflow' or 'kalman'. Default is 'kalman'.}"
+		"{start|1| Start to track/detect objects only from a specific frame. Default is 1.}";
 
 int main(int argc, char ** argv) {
 
@@ -30,6 +31,9 @@ int main(int argc, char ** argv) {
 
 	// Get the starting frame
 	int starting_frame = parser.get<int>("start");
+
+	// Get which algorithm we want to use
+	string track_algo = parser.get<string>("alg");
 
 	// Open the video and check if it is correct
 	// otherwise return with an error.
@@ -99,50 +103,55 @@ int main(int argc, char ** argv) {
 		// displacement each 5 frame to have less noise.
 		frame.copyTo(tracking_lines);
 
-		if (!previous.empty())
+		// Select which algorithm to use for tracking
+		if (track_algo.compare("kalman")==0)
 		{
-			//bg_rem.track_people_optical(previous, frame, contours, boundRect);
 			bg_rem.track_people_kalman(frame, contours, boundRect, frame_counter);
-
-			// Get the tracked humans
-			auto humans = bg_rem.return_humans();
-
-			// Print a line between the points and the result
-			for (Human h : humans) {
-
-				// Check if the user is still there
-				if (!h.is_disappeared())
-				{
-					// Print the user id on top of all the humans detected
-					int rc_x = h.get_trace()[h.get_trace().size()-1].x;
-					int rc_y = h.get_trace()[h.get_trace().size()-1].y;
-					putText(lines_mask, to_string(h.get_id()), Point(rc_x, rc_y), FONT_HERSHEY_SIMPLEX,
-							1, Scalar(255,255,255), 2);
-
-					// Print the human track
-					for (int i=0, j=1; j<h.get_trace().size();)
-					{
-						line(lines_mask, h.get_trace()[i], h.get_trace()[j], h.get_color(), 3);
-						j++;
-						i++;
-					}
-
-					// Print also a cross indicating the current positions
-					drawMarker(lines_mask, h.get_current_position(), h.get_color());
-				}
-
+		} else {
+			if (!previous.empty())
+			{
+				bg_rem.track_people_optical(previous, frame, contours, boundRect);
 			}
-
-			// Merge the lines and the frame
-			tracking = merge_images(tracking_lines, lines_mask);
-
-			// Update the previous frame
-			frame.copyTo(previous);
 		}
 
+		// Get the tracked humans
+		auto humans = bg_rem.return_humans();
+
+		// Print a line between the points and the result
+		for (Human h : humans) {
+
+			// Check if the user is still there
+			if (!h.is_disappeared())
+			{
+				// Print the user id on top of all the humans detected
+				int rc_x = h.get_trace()[h.get_trace().size()-1].x;
+				int rc_y = h.get_trace()[h.get_trace().size()-1].y;
+				putText(lines_mask, to_string(h.get_id()), Point(rc_x, rc_y), FONT_HERSHEY_SIMPLEX,
+						1, Scalar(255,255,255), 2);
+
+				// Print the human track
+				for (int i=0, j=1; j<h.get_trace().size();)
+				{
+					line(lines_mask, h.get_trace()[i], h.get_trace()[j], h.get_color(), 3);
+					j++;
+					i++;
+				}
+
+				// Print also a cross indicating the current positions
+				drawMarker(lines_mask, h.get_current_position(), h.get_color());
+			}
+
+		}
+
+		// Merge the lines and the frame
+		tracking = merge_images(tracking_lines, lines_mask);
+
+		// Update the previous frame
+		frame.copyTo(previous);
+
 		// Update for the first thame the previous frame
-		if (previous.empty())
-			frame.copyTo(previous);
+		//if (previous.empty())
+		//	frame.copyTo(previous);
 
 		// Print everything on screen
 		//namedWindow("Threshold",WINDOW_NORMAL);
