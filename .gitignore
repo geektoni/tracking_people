@@ -94,3 +94,5 @@ cmake-*
 
 report/*
 !report/A1_Report.tex
+
+doc
