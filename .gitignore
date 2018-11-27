@@ -94,5 +94,6 @@ cmake-*
 
 report/*
 !report/A1_Report.tex
+!report/biblio.bib
 
 doc

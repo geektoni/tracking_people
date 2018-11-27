@@ -5,6 +5,8 @@
 \documentclass[runningheads]{llncs}
 %
 \usepackage{graphicx}
+\usepackage[strings]{underscore}
+
 % Used for displaying a sample figure. If possible, figure files should
 % be included in EPS format.
 %
@@ -12,9 +14,12 @@
 % to display URLs in blue roman font according to Springer's eBook style:
 % \renewcommand\UrlFont{\color{blue}\rmfamily}
 
+\usepackage[caption=false,font=normalsize,labelfon
+t=sf,textfont=sf]{subfig}
+
 \begin{document}
 %
-\title{Detecting and Tracking People Motion}
+\title{Detecting and Tracking (People) Motion}
 %
 %\titlerunning{Abbreviated paper title}
 % If the paper title is too long for the running head, you can set
@@ -46,24 +51,71 @@ People detection and their subsequent tracking is a relatively easy task for hum
 
 \section{Methods}
 
-The detection/tracking process was divided into several steps, each of them dealing with a specific issue/task. Moreover, the procedure was devised in order to use simple algorithms in order to provide a relatively easy-to-use system that requires a moderate computational power in order to be applied to real-time systems. The processing pipeline works as follow:
+The detection/tracking process was divided into several steps, each of them dealing with a specific issue/task. Moreover, the procedure was devised in order to use simple algorithms such that to provide a relatively easy-to-use system that requires a moderate computational power in order to be applied to real-time systems. The processing pipeline works as follow:
 \begin{enumerate}
 \item Shadow removal and Background Subtraction;
 \item Feature extraction from the selected contours (centroids+histogram);
 \item Prediction of their position/motion by using the Kalman Filter;
 \end{enumerate}
+The implementation was done using C++ and the OpenCV libary (release 2.4.13) and it was tested on a Ubuntu 16.04 machine.
 
 \subsection{Objects (Humans) Detection}
-The detection of motion and of the pedestrian was composed by two separate tasks: shadow removal and background subtraction.
-At the end of the procedure, for each frame, a set of contours $C$ was generated. These contours represented the moving object detected
-by the algorithm in that specific video frame. 
+For each frame of the given video, the motion detection was performed using a Mixture of Gaussians technique described in the paper by Zivkovic \cite{Mog} in order to do background subtraction (this is implemented as \texttt{BackgroundSubtractorMOG2}\cite{backgroundsubtractormog} inside OpenCV). This technique was used in order to provide a more robust and precise detector. In fact, it can easily absorb eventual sudden changes in the environment (for instance, illumination variations). The result of this procedure is a greyscale image, in which the moving areas are displayed as white ``blobs" (Figure \ref{object_detection_result} shows the result of the entire processing pipeline on a video frame).
+\smallskip
 
-\subsubsection{Shadow Removal}
+In order to avoid wrong motion detection caused by shadows cast by moving objects, each frame was also first converted from the RGB to the HSV space. Then, the hue (H) channel was extracted and the other components were discarded. This enabled us to remove eventual luminance variations which could have caused false positives.
+This conversion proved itself to be most useful because it improved the quality of the motion detection. Figure \ref{object_detection} compares the result of this procedure when applying or not the HSV conversion.
+The MOG method described in the paper is also able to detect shadows, which are highlighted in a different colour (a light grey). These were also removed by applying a binary thresholding. This shadow removal procedure produced a binary image in which the blobs are represented as white areas. 
+Finally,  a sequence of opening and dilating operators with a rectangular shaped structuring element was then applied in order to remove the eventual noise, fill eventual holes and, more generally, to improve the blobs.
+\smallskip
 
-Shadows are defined as a variation of luminance of a particular area of a specific video frame. They are a source of trouble when we need to detect the motion of objects in a video recording. A shadow usually cannot be distinguished from the real object casting it and therefore it is recognized as a moving part of the video. Intelligent shadows detection and removal is still an ongoing research topic since there is no way to perfectly avoid them.  
+As a second step, we applied a procedure to extract the contours from the binary frame containing the previously detected blobs (we used the OpenCV \texttt{findContours} \cite{findcontours} method). We filtered also the contours in order to reduce eventual noise by selecting only those which had an area above an empirical threshold. The threshold was selected in order to maximize the number of pedestrians found and to minimize the false positive (for instance, the detection of small parts of these pedestrians).  For each of these filtered contours, we generated also their corresponding bounding boxes.
 
-\subsubsection{People Detection}
+We also recorded and provided the number of pedestrians detected for each frame of the video. 
+
+% Conversion from RGB to HSV
+% Selection of the H plane
+% Mog
+
+\begin{figure}
+\centering
+\subfloat[Background subtraction without HSV shadow removal.]{\includegraphics[width=0.8\linewidth]{./images/shadows_300_no_removal.png}\label{tracknos}}
+\hfill
+\subfloat[Background subtraction with HSV shadow removal.]{\includegraphics[width=0.8\linewidth]{./images/shadows_300.png}\label{tracks}}
+\caption{Figure (a) shows the result of the background subtraction without the HSV conversion. We clearly see that the image
+is more noisy and provide much more segmentation than Figure (b).}
+\label{object_detection}
+\end{figure}
+
+\begin{figure}
+%\subfloat[People detection without HSV shadow removal.]{\includegraphics[width=\linewidth]{./images/detection_300_no_removal.png}\label{detect_no_s}}
+%\hfill
+%\subfloat[People detection with HSV shadow removal]{}\label{detect_s}}
+\includegraphics[width=\linewidth]{./images/detection_300.png}
+\caption{This figure shows the results of the motion detection algorithm on a single frame of the video. Here the found contours (white) and bounding boxes (red) were applied to the original frame. On the top left corner, we can see the people counter.}
+\label{object_detection_result}
+\end{figure}
+
+% Feature used (centroids of contours)
+% Histogram of the contours
+% Kalman Filter
 \subsection{People Tracking}
+
+People tracking was subsequentely done after the background subtraction. First of all, some features were identified in order to define precisely
+the characteristic of the pedestrian to track. For each contours found in the previous phase, the centroid was computed and also the histogram of
+that specific area was generated (by appling a mask to the frame in order to select that specific area). These features enabled us to discriminate
+between the different humans, reducing the possible errors. 
+
+Each new detected contours is assigned to one of the previously detected humans by looking to these features:
+\begin{enumerate}
+\item The difference between the two centroids must be below a certain threshold;
+\item The correlation coefficient between the two histogram must be above a certain threshold;
+\end{enumerate}
+
+The algorithm was the following:
+
+
+
 \section{Experiments and Results}
 \section{Conclusions}
 
@@ -71,19 +123,6 @@ Shadows are defined as a variation of luminance of a particular area of a specif
 % the environments 'definition', 'lemma', 'proposition', 'corollary',
 % 'remark', and 'example' are defined in the LLNCS documentclass as well.
 %
-\begin{proof}
-Proofs, examples, and remarks have the initial word in italics,
-while the following text appears in normal font.
-\end{proof}
-For citations of references, we prefer the use of square brackets
-and consecutive numbers. Citations using labels or the author/year
-convention are also acceptable. The following bibliography provides
-a sample reference list with entries for journal
-articles~\cite{ref_article1}, an LNCS chapter~\cite{ref_lncs1}, a
-book~\cite{ref_book1}, proceedings without editors~\cite{ref_proc1},
-and a homepage~\cite{ref_url1}. Multiple citations are grouped
-\cite{ref_article1,ref_lncs1,ref_book1},
-\cite{ref_article1,ref_book1,ref_proc1,ref_url1}.
 %
 % ---- Bibliography ----
 %
@@ -93,25 +132,34 @@ and a homepage~\cite{ref_url1}. Multiple citations are grouped
 % \bibliographystyle{splncs04}
 % \bibliography{mybibliography}
 %
-\begin{thebibliography}{8}
-\bibitem{ref_article1}
-Author, F.: Article title. Journal \textbf{2}(5), 99--110 (2016)
+\bibliographystyle{splncs04}
+\bibliography{biblio}
+%\begin{thebibliography}{8}
 
-\bibitem{ref_lncs1}
-Author, F., Author, S.: Title of a proceedings paper. In: Editor,
-F., Editor, S. (eds.) CONFERENCE 2016, LNCS, vol. 9999, pp. 1--13.
-Springer, Heidelberg (2016). \doi{10.10007/1234567890}
 
-\bibitem{ref_book1}
-Author, F., Author, S., Author, T.: Book title. 2nd edn. Publisher,
-Location (1999)
 
-\bibitem{ref_proc1}
-Author, A.-B.: Contribution title. In: 9th International Proceedings
-on Proceedings, pp. 1--2. Publisher, Location (2010)
+%\bibitem{ref_mog}
+%Z. Zivkovic, Improved adaptive Gaussian mixture model for background subtraction, Proceedings of the 17th International %Conference on Pattern Recognition, 2004. ICPR 2004.
+%vol. 2, 28-31 Vol.2, \doi{10.1109/ICPR.2004.1333992}
 
-\bibitem{ref_url1}
-LNCS Homepage, \url{http://www.springer.com/lncs}. Last accessed 4
-Oct 2017
-\end{thebibliography}
+%\bibitem{ref_article1}
+%Author, F.: Article title. Journal \textbf{2}(5), 99--110 (2016)
+
+%\bibitem{ref_lncs1}
+%Author, F., Author, S.: Title of a proceedings paper. In: Editor,
+%F., Editor, S. (eds.) CONFERENCE 2016, LNCS, vol. 9999, pp. 1--13.
+%Springer, Heidelberg (2016). \doi{10.10007/1234567890}
+
+%\bibitem{ref_book1}
+%Author, F., Author, S., Author, T.: Book title. 2nd edn. Publisher,
+%Location (1999)
+
+%\bibitem{ref_proc1}
+%Author, A.-B.: Contribution title. In: 9th International Proceedings
+%on Proceedings, pp. 1--2. Publisher, Location (2010)
+
+%\bibitem{ref_url1}
+%LNCS Homepage, \url{http://www.springer.com/lncs}. Last accessed 4
+%Oct 2017
+%\end{thebibliography}
 \end{document}
