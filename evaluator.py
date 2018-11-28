@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.metrics import mean_squared_error
+from math import sqrt
 
 
 def compute_distance(points):
@@ -27,9 +28,9 @@ count = pd.read_csv("./people_count.csv", index_col=["frame"])
 gt_count = gt.groupby(["frame"]).count().rename(columns={"id": "count"}).drop(["x", "y"], axis=1)
 count_j = gt_count.join(count, lsuffix="_pred")
 
-# Print MSE of counting
-mse = mean_squared_error(count_j["count"], count_j["count_pred"])
-print("Count MSE: {}".format(mse))
+# Print RMSE of counting
+rmse = sqrt(mean_squared_error(count_j["count"], count_j["count_pred"]))
+print("Count RMSE: {}".format(rmse))
 
 
 # Iterate over the users
