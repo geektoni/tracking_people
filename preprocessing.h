@@ -45,12 +45,13 @@ public:
 	 * @param use_bounding_box flag to set if we want to use the bounding boxes.
 	 * @param _contours this vector will contain the found contours.
 	 * @param _boundRect this vector will contain the found bounding boxes.
+	 * @param people_count this integer will contain the people count for each frame.
 	 * @return the original_input plus the contours+bounding boxes+people counter.
 	 */
 	cv::Mat find_contours(const cv::Mat input, const cv::Mat original_input,
 				  bool use_bounding_box,
 				  cv::vector<cv::vector<cv::Point>> & _contours,
-				  cv::vector<cv::Rect> & _boundRect);
+				  cv::vector<cv::Rect> & _boundRect, int & people_count);
 
 	/**
 	 * Track people given their bounding boxes (using Lucas-Kanade Optical Flow).
@@ -73,6 +74,15 @@ public:
 	void track_people_kalman(cv::Mat current, cv::vector<cv::vector<cv::Point>> & _contours,
 							 cv::vector<cv::Rect> & _boundRect, const int frame_count);
 
+	/**
+	 * Track people given their contours and by using their centroid and histogram.
+	 * @param current the current frame.
+	 * @param _contours the contours found in the current frame.
+	 * @param _boundRect the bounding boxes of the contours found.
+	 * @param frame_count the current frame number.
+	 */
+	void track_people_simple(cv::Mat current, cv::vector<cv::vector<cv::Point>> &_contours,
+							 cv::vector<cv::Rect> &_boundRect, const int frame_count);
 
 	/**
 	 * Return the humans tracked up to now.
@@ -128,6 +138,20 @@ private:
 	 * @param frame_count the current frame number.
 	 */
 	void update_humans_kalman(cv::Mat current, cv::vector<cv::Point2f> points, int frame_size,
+							  cv::vector<cv::vector<cv::Point>> &_contours,
+							  const cv::vector<cv::Rect> & _boundRect, const int frame_count);
+
+	/**
+	 * Update human position using a simple region-based approach.
+	 * @param current the current frame.
+	 * @param points the centers of the blob found.
+	 * @param frame_size the size of the video (number of columns of the frame).
+	 * @param _contours the contours found in the current frame.
+	 * @param _boundRect the bounding boxes of the contours found.
+	 * @param frame_count the current frame number.
+	 */
+	void update_humans_simple(cv::Mat current,
+							  cv::vector<cv::Point2f> points, int frame_size,
 							  cv::vector<cv::vector<cv::Point>> &_contours,
 							  const cv::vector<cv::Rect> & _boundRect, const int frame_count);
 

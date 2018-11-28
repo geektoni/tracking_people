@@ -17,10 +17,11 @@ using namespace cv;
 using namespace std;
 
 const char * keys = "{h | help | | Print this message.}"
-		"{f |file| | Path to the video that has to be analyzed.}"
-		"{a |alg| kalman | Which tracking algorithm will be used, can be 'opticalflow' or 'kalman'. Default is 'kalman'.}"
+		"{f |file| . | Path to the video that has to be analyzed.}"
+		"{a |alg| kalman | Which tracking algorithm will be used, can be 'opticalflow', 'kalman', 'simple'. Default is 'kalman'.}"
 		"{s|start | 1 | Start to track/detect objects only from a specific frame. Default is 1.}"
-		"{sh|remove_shadow | true | Choose if we want to remove shadow with HSV or just use MOG2 capabilities.}";
+		"{sh|remove_shadow | true | Choose if we want to remove shadow with HSV or just use MOG2 capabilities.}"
+		"{save | save_frame | -1 | Save the frame specified by the number to disk.}";
 
 int main(int argc, char ** argv) {
 
@@ -38,6 +39,9 @@ int main(int argc, char ** argv) {
 
 	// Remove the shadows using HSV
 	bool remove_shadow = parser.get<bool>("remove_shadow");
+
+	// Which frame need to be saved
+	int save_frame = parser.get<int>("save_frame");
 
 	// Open the video and check if it is correct
 	// otherwise return with an error.
@@ -66,11 +70,18 @@ int main(int argc, char ** argv) {
 	// Open output file
 	ofstream output("./people_track.csv");
 
+	// Open people count file
+	ofstream output_count("./people_count.csv");
+
 	// Print the header
 	output << "frame,id,X,Y" << endl;
+	output_count << "frame,count" << endl;
 
 	// Frame counter
 	int frame_counter=1;
+
+	// People counter
+	int people_counter=0;
 
 	while (true) {
 
@@ -96,7 +107,10 @@ int main(int argc, char ** argv) {
 		fg.copyTo(fg_copy);
 
 		// Find contours and boundin boxes
-		Mat drawing = bg_rem.find_contours(fg, frame, true, contours, boundRect);
+		Mat drawing = bg_rem.find_contours(fg, frame, true, contours, boundRect, people_counter);
+
+		// Save to file the people count
+		output_count << frame_counter << "," << people_counter << endl;
 
 		// Get the bounding rectangle centers
 		vector<Point2f> current_centers = FindPeople::compute_center(boundRect);
@@ -111,6 +125,8 @@ int main(int argc, char ** argv) {
 		if (track_algo.compare("kalman")==0)
 		{
 			bg_rem.track_people_kalman(frame, contours, boundRect, frame_counter);
+		} else if (track_algo.compare("simple")==0){
+			bg_rem.track_people_simple(frame, contours, boundRect, frame_counter);
 		} else {
 			if (!previous.empty())
 			{
@@ -131,7 +147,7 @@ int main(int argc, char ** argv) {
 				int rc_x = h.get_trace()[h.get_trace().size()-1].x;
 				int rc_y = h.get_trace()[h.get_trace().size()-1].y;
 				putText(lines_mask, to_string(h.get_id()), Point(rc_x, rc_y), FONT_HERSHEY_SIMPLEX,
-						1, Scalar(255,255,255), 2);
+						1, Scalar(0,0,255), 2);
 
 				// Print the human track
 				for (int i=0, j=1; j<h.get_trace().size();)
@@ -158,9 +174,9 @@ int main(int argc, char ** argv) {
 		//	frame.copyTo(previous);
 
 		// Print everything on screen
-		//namedWindow("Threshold",WINDOW_NORMAL);
-		//resizeWindow("Threshold", 600, 600);
-		//imshow("Threshold", fg_copy);
+		namedWindow("Threshold",WINDOW_NORMAL);
+		resizeWindow("Threshold", 600, 600);
+		imshow("Threshold", fg_copy);
 
 		namedWindow("Detect",WINDOW_NORMAL);
 		resizeWindow("Detect", 600, 600);
@@ -170,6 +186,16 @@ int main(int argc, char ** argv) {
 		resizeWindow("Tracking", 600, 600);
 		if (!tracking.empty())
 			imshow("Tracking", tracking);
+
+		// Save to disk the specified frame
+		if (save_frame == frame_counter)
+		{
+			imwrite("./shadows.png", fg_copy);
+			imwrite("./detection.png", drawing);
+			if(!tracking.empty())
+				imwrite("./tracking.png", tracking);
+		}
+
 
 		waitKey(1);
 

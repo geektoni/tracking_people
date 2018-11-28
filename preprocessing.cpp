@@ -66,13 +66,13 @@ vector<Rect> FindPeople::generate_bounding_boxes(const vector<vector<Point>> & c
 cv::Mat FindPeople::find_contours(const cv::Mat input, const cv::Mat original_input,
 								  bool use_bounding_box,
 								  vector<vector<Point>> & _contours,
-								  vector<Rect> & _boundRect) {
+								  vector<Rect> & _boundRect, int & people_count) {
 
 	vector<vector<Point>> contours, filtered_contours;
 	vector<Vec4i> hierarchy;
 
 	// Find people contours
-	findContours(input, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+	findContours(input, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
 
 	// Filter contours in order to avoid false positives
 	for (vector<Point> c : contours)
@@ -122,6 +122,7 @@ cv::Mat FindPeople::find_contours(const cv::Mat input, const cv::Mat original_in
 	// we need other informations
 	_contours = filtered_contours;
 	_boundRect = boundRect;
+	people_count = total_people_count;
 
 	return drawing;
 }
@@ -158,6 +159,17 @@ void FindPeople::track_people_kalman(cv::Mat current, cv::vector<cv::vector<cv::
 
 	// Update the humans using their own kalman filter
 	this->update_humans_kalman(current, points, current.cols, _contours, _boundRect, frame_count);
+}
+
+void FindPeople::track_people_simple(cv::Mat current, cv::vector<cv::vector<cv::Point>> &_contours,
+									 cv::vector<cv::Rect> &_boundRect, const int frame_count)
+{
+	// Compute centroids for each of the points
+	// and store them into an array.
+	vector<Point2f> points = compute_centroids(_contours);
+
+	// Update the humans using only their centroid+histogram
+	this->update_humans_simple(current, points, current.cols, _contours, _boundRect, frame_count);
 }
 
 vector<Point2f> FindPeople::compute_center(const cv::vector<cv::Rect> & _boundRect)
@@ -381,6 +393,115 @@ void FindPeople::update_humans(cv::vector<cv::Point2f> result, int frame_size) {
 				Human tmp(this->counter++);
 				tmp.update_position(p);
 				tmp.add_to_trace(p);
+				this->humans_tracked.push_back(tmp);
+			}
+		}
+	}
+
+	// Finally, we remove all the users that has a disapperence rate greater than
+	// a specific value
+	for (Human & p : this->humans_tracked)
+	{
+		if (p.get_disappearence() > this->disappearence_threshold)
+			p.kill();
+	}
+}
+
+void FindPeople::update_humans_simple(cv::Mat current,
+									  cv::vector<cv::Point2f> points, int frame_size,
+									  cv::vector<cv::vector<cv::Point>> &_contours,
+									  const cv::vector<cv::Rect> & _boundRect, const int frame_count)
+{
+	// If this is the first run, we add the users into the array
+	if (this->humans_tracked.size()==0)
+	{
+		for (int i=0; i<points.size(); i++)
+		{
+			Point2f p = points[i];
+			Human tmp(this->counter++);
+			tmp.update_position(p);
+			tmp.add_to_trace(p);
+			tmp.set_histogram(current, _contours[i], _boundRect[i]);
+			this->humans_tracked.push_back(tmp);
+		}
+
+	} else {
+
+		// Set also the decision flag to false
+		for (Human & h : this->humans_tracked)
+		{
+			if (!h.is_disappeared())
+			{
+				h.set_decided(false);
+			}
+		}
+
+		// Check if we can pair points to their user
+		for (int i=0; i<points.size(); i++)
+		{
+			Point2f p = points[i];
+
+			// We assume that this point has not been paired
+			bool found=false;
+
+			// Get the hisotgram of this specific point
+			Mat_<float> histo_p = Human::compute_histogram(current, _contours[i], _boundRect[i]);
+
+			// The human which will be nearer to the point will
+			// take it as its own.
+			Human * winner_human;
+			float winner_distance=-1;
+			for (Human & h : this->humans_tracked)
+			{
+				// We can only check for users that are still in the scene
+				// and that have not already decided their next points
+				if (!h.is_disappeared() && !h.has_decided()) {
+					// We increment the disappearence rate for this user
+					h.update_disappearence();
+
+					// If we have found a corresponding "human",
+					// then we update its position and trace.
+					// We check for its histogram and distance from the actual point
+					if (h.is_the_same(p, histo_p)) {
+						if (!(winner_distance > h.get_distance_from(p)))
+						{
+							winner_distance = h.get_distance_from(p);
+							winner_human = &h;
+							found=true;
+						}
+					}
+				}
+			}
+
+			// If the point was found, then the best user will take it
+			if (found)
+			{
+				winner_human->update_position(p);
+				winner_human->add_to_trace(p);
+				winner_human->reset_disappearence();
+
+				winner_human->set_decided(true);
+
+				// Update the histogram in order to account for change in position
+				winner_human->set_histogram(current, _contours[i], _boundRect[i]);
+			}
+
+			// If this point has not been found and if it reasonably
+			// near the side of the frame, then we assume that it is
+			// a new guy entering the scene
+			float distance_left = abs(p.x-frame_size);
+			float distance_right = frame_size - abs(p.x-frame_size);
+
+			if (!found
+				&& (distance_left < this->border_threshold
+					|| distance_right < this->border_threshold
+					|| frame_detection_threshold >= frame_count))
+			{
+				Human tmp(this->counter++);
+				tmp.update_position(p);
+				tmp.add_to_trace(p);
+				tmp.initialize_kalman(p.x, p.y);
+				tmp.set_histogram(current, _contours[i], _boundRect[i]);
 				this->humans_tracked.push_back(tmp);
 			}
 		}
