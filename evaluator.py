@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.metrics import mean_squared_error
 
 
 def compute_distance(points):
@@ -21,8 +22,17 @@ gt = pd.read_csv("./data/A1_assignment/A1_groundtruthC.txt", header=None, names=
 # Users we want to track
 users = [10, 36, 42]
 
+# Compute the count variations
+count = pd.read_csv("./people_count.csv", index_col=["frame"])
+gt_count = gt.groupby(["frame"]).count().rename(columns={"id": "count"}).drop(["x", "y"], axis=1)
+count_j = gt_count.join(count, lsuffix="_pred")
+
+# Print MSE of counting
+mse = mean_squared_error(count_j["count"], count_j["count_pred"])
+print("Count MSE: {}".format(mse))
+
+
 # Iterate over the users
-print("# Tracking displacement #")
 for u in users:
 
     # Open the result file
