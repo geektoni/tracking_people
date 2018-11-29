@@ -48,7 +48,8 @@ Detecting and tracking motion is one of the most common computer vision's tasks.
 %
 %
 \section{Introduction}
-People detection and their subsequent tracking is a relatively easy task for humans, however, when dealing with a computer video system things becomes much more complicated. Computers and video cameras are not real people and they do not possess our capability to easily recognize objects and subsequent track their motion.  The need to recognize and follow people by just looking at a video recording has become one important task which has many real-world applications. We can enumerate a few of them: surveillance systems, autonomous vehicles, etc. 
+Detection of moving objects and their subsequent tracking is a relatively easy task for humans. However, this operation becomes much more complicated when dealing with a computer video system. Recognize and follow passing objects by just looking at video recordings is incredibly useful for many real-world applications: surveillance systems, autonomous vehicles, crowds monitoring etc. The objective of this work is to produce a simple tracking system which is both accurate and with a relatively fast execution speed. Firstly, we tried to devise a procedure in order to detect motion in a reliable way, by applying background subtraction techniques. Secondly, we defined two methods to do dynamic tracking of detected objects by means of a region-based approach and of a more sophisticated solution which employ the Kalman filter.
+This paper is structured in 4 main parts. Section 2 describes some related works on this topic and papers that were consulted for this work. Section 3 describes the chosen methods used to tackle the issue, from the objects detection (Mixture of Gaussians) to the tracking (region-based and Kalman-aided approaches). Section 4 describes the settings and results of the experiments done with our implementation. Finally, Section 5 elaborates the results of the experiments and we try to reach some conclusions.
 
 \section{Related Works}
 
@@ -125,10 +126,9 @@ The system used to run the experiments was an Ubuntu 16.04 virtual machine (it w
 
 \subsection{Video Description}
 
-The video which we used to run our experiments was a computer-generated simulation of pedestrians entering and exiting the scene. The video used MPEG-4 format and it had a frame size of 1280x720. The original colour space was the YUV.
-The size of the entire video was about 12 MB on disk with a duration of 50,876 seconds (all these information were extracted by using the \texttt{mediainfo} bash command).
+The video which we used to run our experiments was a computer-generated simulation of pedestrians entering and exiting the scene acquired from top view. The video used MPEG-4 format and it had a frame size of 1280x720. The original colour space was the YUV. The size of the entire video was about 12 MB on disk with a duration of 50,876 seconds (all these information were extracted by using the \texttt{mediainfo} bash command).
 
-All pedestrian moved in one direction only (without changing it) and the scene presented almost constant illumination. Apart from the pedestrian moving there was no other source of motion. 
+All pedestrian moved in one direction only (without changing it) with almost constant velocity and the scene presented constant illumination. Apart from the pedestrian moving there was no other source of motion. 
 
 \subsection{Results}
 Generally, the entire procedure was relatively fast and was computationally efficient (we checked both CPU usage and memory consumption). The region-based approach was slightly faster than the Kalman-aided, but we noticed in both cases a minor slowdown when there were too many pedestrians on the scene. Figure X shows a sample frame of the video in which we see the tracking procedure working.
@@ -139,8 +139,6 @@ The algorithm was able to discover successfully most of the pedestrian crossing 
 The tracking part gave instead very different results. The region-based approach performed well only in such situations in which the pedestrian is not occluded by too many other people. If that situation arises, then the trajectory is detected wrongly. Moreover, the performance over the detection of the selected pedestrians is somewhat poor. 
 The Kalman-aided procedure worked instead much better. For instance, the tracking performance over the selected pedestrians outperforms the one obtained with only the region-based approach. Table X shows the final results.
 
-% Please add the following required packages to your document preamble:
-% \usepackage{graphicx}
 \begin{table}[]
 \centering
 \caption{Mean and standard deviation of the detected trajectories with respect to the real ones.}
@@ -159,6 +157,11 @@ The Kalman-aided procedure worked instead much better. For instance, the trackin
 
 
 \section{Conclusions}
+
+The previous experiment showed us that we can easily build a detection/tracking system which can give us modest performances without employing cutting-edge hardware or software. However, our method presents several pitfalls which can be hardly solved completely. For instance, the background subtraction is not able to detect all the moving pedestrians and it suffers also of splitting events (in which a pedestrian is identified not as a complete entity, but maybe only by its torso and legs, which are two separate blobs). 
+ The tracking part is the one which requires the most care. In fact, one issue of our proposed methods was that they cannot discriminate object in presence of occlusions. When two blobs merge together it becomes difficult to distinguish between them and to predict their next position, even if we consider the histogram information. One common solution to this problem is to avoid to update the model during occlusions. The objects positions are refreshed periodically only after a certain amount of frames. This will enable us to postpone the decision to a later frame when the blobs (hopefully) will have divided themselves.
+The performance could be improved by using more sophisticated methods. 
+By selecting other features rather than blob's centroids and histograms we may be able to improve the accuracy of the tracking phase. Template-based approaches could also be used, since if we wanted to track only human, then we would be better of by implementing a system which detects all the moving objects which have a ``human" shape.
 
 %
 % the environments 'definition', 'lemma', 'proposition', 'corollary',
