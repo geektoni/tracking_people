@@ -54,6 +54,9 @@ int main(int argc, char ** argv) {
 		return -1;
 	}
 
+	// Save the video on an output file
+	VideoWriter output_video("output.avi",CV_FOURCC('M','J','P','G'),10, Size(1280, 720));
+
 	// Current frame
 	Mat frame, previous, lines_mask, tracking_lines, tracking;
 
@@ -161,30 +164,33 @@ int main(int argc, char ** argv) {
 				}
 
 				// Print also a cross indicating the current positions
-				drawMarker(lines_mask, h.get_current_position(), h.get_color());
+				//drawMarker(lines_mask, h.get_current_position(), h.get_color());
 			}
 
 		}
 
 		// Merge the lines and the frame
-		tracking = merge_images(tracking_lines, lines_mask);
+		tracking = merge_images(drawing, lines_mask);
 
 		// Update the previous frame
 		frame.copyTo(previous);
 
+		// Save video to disk
+		output_video.write(tracking);
+
 		// Print everything on screen
-		namedWindow("Threshold",WINDOW_NORMAL);
-		resizeWindow("Threshold", 600, 600);
-		imshow("Threshold", fg_copy);
+		//namedWindow("Threshold",WINDOW_NORMAL);
+		//resizeWindow("Threshold", 600, 600);
+		//imshow("Threshold", fg_copy);
 
-		namedWindow("Detect",WINDOW_NORMAL);
-		resizeWindow("Detect", 600, 600);
-		imshow("Detect", drawing);
+		//namedWindow("Detect",WINDOW_NORMAL);
+		//resizeWindow("Detect", 600, 600);
+		//imshow("Detect", drawing);
 
-		namedWindow("Tracking",WINDOW_NORMAL);
-		resizeWindow("Tracking", 600, 600);
+		namedWindow("Result",WINDOW_NORMAL);
+		resizeWindow("Result", 600, 600);
 		if (!tracking.empty())
-			imshow("Tracking", tracking);
+			imshow("Result", tracking);
 
 		// Save to disk the specified frame
 		if (save_frame == frame_counter)

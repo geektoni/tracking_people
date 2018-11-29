@@ -136,7 +136,6 @@ void FindPeople::track_people_optical(cv::Mat previous, cv::Mat current, cv::vec
 	// Comput centroids for each of the points
 	// and store them into an array.
 	vector<Point2f> points = compute_centroids(_contours);
-	//vector<Point2f> points =  compute_center(_boundRect);
 
 	// This array will contain the next points
 	vector<Point2f> result(points.size());
@@ -155,7 +154,6 @@ void FindPeople::track_people_kalman(cv::Mat current, cv::vector<cv::vector<cv::
 	// Compute centroids for each of the points
 	// and store them into an array.
 	vector<Point2f> points = compute_centroids(_contours);
-	//vector<Point2f> points =  compute_center(_boundRect);
 
 	// Update the humans using their own kalman filter
 	this->update_humans_kalman(current, points, current.cols, _contours, _boundRect, frame_count);
