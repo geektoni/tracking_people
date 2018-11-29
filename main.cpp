@@ -11,7 +11,7 @@
 #include <opencv/cxcore.h>
 
 #include "utils.h"
-#include "preprocessing.h"
+#include "FindPeople.h"
 
 using namespace cv;
 using namespace std;

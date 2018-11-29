@@ -2,7 +2,7 @@
 * Written (W) 2018 Giovanni De Toni
 */
 
-#include "preprocessing.h"
+#include "FindPeople.h"
 #include "Human.h"
 #include <string>
 #include <iostream>
