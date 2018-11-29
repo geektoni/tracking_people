@@ -7,38 +7,47 @@ in a given video acquired from top view.
 ## Install
 
 This project was tested on Ubuntu 16.04 and it requires OpenCV 2.4.13 in order to operate properly.
+It uses CMake to manage the default build process (CMake version must be 2.8 or greater).
 The `evaluator.py` was tested with Python 3 and it requires some additional libraries: pandas, numpy,
 and sklearn.
 
 The installation procedure is the following:
-`
+```bash
 cd tracking_people
 mkdir build
 cd build
 cmake ../
 make tracking_people
-`
+```
 This will generate an executable called `tracking_people` inside the `build` directory.
 
-## Run it
+There is also the possibility to build another target called `ground_truth` which will
+display on screen the ids and trajectories of the selected pedestrians (10, 36, and 42)
+which were used for testing the accuracy of the predicted trajectories.
+As usual, the procedure is the following:
+```bash
+cd tracking_people
+cd build
+make ground_truth
+```
+
+## Running
 
 To see the algorithm in action, the base procedure is the following
-`
+```bash
 cd tracking_people
 cd build
 ./tracking_people -f ../data/A1_assignment/A1_test.mp4 -alg kalman
-`
-If one wants to run the procedure by just using the simple region-based version, then he needs to
+```
+If one wants to run the procedure by just using the simple region-based algorithm, then he needs to
 change the `-alg` value from `kalman` to `simple`.
 
+## Documentation
 
-tracking_people
-Tracking People with OpenCV.
-
-The task of this assignment is to count and track people in a given video acquired from top view.
-
-The accomplishment of the assignment will be evaluated on the two tasks separately (counting and tracking).
-
-Counting: the student has to provide a frame-by-frame information related to the actual number of people present in the scene. As an optional task, the number of people entering/exiting a specific gate can be provided.
-
-Tracking: for each pedestrian in the scene, provide the trajectory, as a separate output file, to be compared with the provided ground truth. As a validation metric, the average displacement error will be considered for a selected number of pedestrians.
+It is possible also to generate the HTML code documentation. This requires Doxygen to be installed
+in the system. To build the docs the procedure is the following:
+```bash
+cd tracking_people
+cd build
+make doc
+```
