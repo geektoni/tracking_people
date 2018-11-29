@@ -1,3 +1,4 @@
+import sys
 import pandas as pd
 import numpy as np
 from sklearn.metrics import mean_squared_error
@@ -13,6 +14,9 @@ def compute_distance(points):
         distances.append(distance)
     return np.array(distances)
 
+if (len(sys.argv) == 1):
+    print("Wrong number of parameters!")
+    print("Usage: evaluator.py <result_dir>")
 
 # Data types
 dtypes = {"frame": np.int32, "id": np.int32, "x":np.float64, "y":np.float64}
@@ -24,7 +28,7 @@ gt = pd.read_csv("./data/A1_assignment/A1_groundtruthC.txt", header=None, names=
 users = [10, 36, 42]
 
 # Compute the count variations
-count = pd.read_csv("./people_count.csv", index_col=["frame"])
+count = pd.read_csv(sys.argv[1]+"/people_count.csv", index_col=["frame"])
 gt_count = gt.groupby(["frame"]).count().rename(columns={"id": "count"}).drop(["x", "y"], axis=1)
 count_j = gt_count.join(count, lsuffix="_pred")
 
@@ -37,7 +41,7 @@ print("Count RMSE: {}".format(rmse))
 for u in users:
 
     # Open the result file
-    user_file = pd.read_csv("./track_"+str(u)+".csv", index_col=["frame"], dtype=dtypes)
+    user_file = pd.read_csv(sys.argv[1]+"/track_"+str(u)+".csv", index_col=["frame"], dtype=dtypes)
 
     # Join the result with the ground truth
     result = gt[gt.id==u].join(user_file, rsuffix="_pred").drop(["id_pred"], axis=1)
