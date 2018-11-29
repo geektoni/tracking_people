@@ -210,8 +210,16 @@ int main(int argc, char ** argv) {
 		{
 			if (!h.is_disappeared())
 			{
-				if (h.get_id() == selected_one && selected_one != -1) {
-					// Print the value for this frame
+				if (selected_one != -1)
+				{
+					if (h.get_id() == selected_one) {
+						// Print the value for this frame
+						output << frame_counter
+							   << "," << h.get_id()
+							   << "," << h.get_current_position().x
+							   << "," << h.get_current_position().y << endl;
+					}
+				} else {
 					output << frame_counter
 						   << "," << h.get_id()
 						   << "," << h.get_current_position().x
