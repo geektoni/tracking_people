@@ -6,10 +6,10 @@ project(tracking_people)
 if (CMAKE_VERSION VERSION_LESS "3.1")
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
       set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
-    endif
-  else
+    endif()
+  else()
     set(CMAKE_CXX_STANDARD 11)
-endif
+endif()
 
 set(OPENCV_LIBRARIES opencv_highgui opencv_core opencv_imgproc opencv_video)
 
