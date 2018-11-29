@@ -128,7 +128,7 @@ cv::Mat FindPeople::find_contours(const cv::Mat input, const cv::Mat original_in
 }
 
 void FindPeople::track_people_optical(cv::Mat previous, cv::Mat current, cv::vector<cv::vector<cv::Point>> & _contours,
-							 cv::vector<cv::Rect> & _boundRect) {
+							 cv::vector<cv::Rect> & _boundRect, const int frame_count) {
 
 	vector<uchar> status;
 	vector<float> err;
@@ -146,7 +146,7 @@ void FindPeople::track_people_optical(cv::Mat previous, cv::Mat current, cv::vec
 		calcOpticalFlowPyrLK(previous, current, points, result, status, err);
 
 	// Update the human positions and labels
-	this->update_humans(result, current.cols);
+	this->update_humans(result, current.cols, frame_count);
 }
 
 void FindPeople::track_people_kalman(cv::Mat current, cv::vector<cv::vector<cv::Point>> &_contours,
@@ -298,7 +298,7 @@ void FindPeople::update_humans_kalman(cv::Mat current,
 			if (!found
 				&& (distance_left < this->border_threshold
 					|| distance_right < this->border_threshold
-								   || frame_detection_threshold >= frame_count))
+					|| frame_detection_threshold >= frame_count))
 			{
 				Human tmp(this->counter++);
 				tmp.update_position(p);
@@ -319,7 +319,7 @@ void FindPeople::update_humans_kalman(cv::Mat current,
 	}
 }
 
-void FindPeople::update_humans(cv::vector<cv::Point2f> result, int frame_size) {
+void FindPeople::update_humans(cv::vector<cv::Point2f> result, int frame_size, const int frame_count) {
 
 	// If this is the first run, we add the users into the array
 	if (this->humans_tracked.size()==0)
@@ -388,7 +388,8 @@ void FindPeople::update_humans(cv::vector<cv::Point2f> result, int frame_size) {
 
 			if (!found
 				&& (distance_left < this->border_threshold
-					|| distance_right < this->border_threshold))
+					|| distance_right < this->border_threshold)
+					|| frame_detection_threshold >= frame_count)
 			{
 				Human tmp(this->counter++);
 				tmp.update_position(p);

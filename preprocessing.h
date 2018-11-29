@@ -62,7 +62,7 @@ public:
 	 */
 	void track_people_optical(cv::Mat previous, cv::Mat current,
 												 cv::vector<cv::vector<cv::Point>> & _contours,
-												 cv::vector<cv::Rect> & _boundRect);
+												 cv::vector<cv::Rect> & _boundRect, const int frame_count);
 
 	/**
 	 * Track people given their contours and by using the Kalman Filter.
@@ -126,7 +126,7 @@ private:
 	 * @param points the centers of the blob found.
 	 * @param frame_size the size of the video (number of columns of the frame).
 	 */
-	void update_humans(cv::vector<cv::Point2f> points, int frame_size);
+	void update_humans(cv::vector<cv::Point2f> points, int frame_size, const int frame_count);
 
 	/**
 	 * Update human position using the Kalman filter.

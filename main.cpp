@@ -21,7 +21,8 @@ const char * keys = "{h | help | | Print this message.}"
 		"{a |alg| kalman | Which tracking algorithm will be used, can be 'opticalflow', 'kalman', 'simple'. Default is 'kalman'.}"
 		"{s|start | 1 | Start to track/detect objects only from a specific frame. Default is 1.}"
 		"{sh|remove_shadow | true | Choose if we want to remove shadow with HSV or just use MOG2 capabilities.}"
-		"{save | save_frame | -1 | Save the frame specified by the number to disk.}";
+		"{save | save_frame | -1 | Save the frame specified by the number to disk.}"
+		"{u | user | -1 | Save tracking data only for this specific user.}";
 
 int main(int argc, char ** argv) {
 
@@ -42,6 +43,8 @@ int main(int argc, char ** argv) {
 
 	// Which frame need to be saved
 	int save_frame = parser.get<int>("save_frame");
+
+	int selected_one = parser.get<int>("user");
 
 	// Open the video and check if it is correct
 	// otherwise return with an error.
@@ -130,7 +133,7 @@ int main(int argc, char ** argv) {
 		} else {
 			if (!previous.empty())
 			{
-				bg_rem.track_people_optical(previous, frame, contours, boundRect);
+				bg_rem.track_people_optical(previous, frame, contours, boundRect, frame_counter);
 			}
 		}
 
@@ -169,10 +172,6 @@ int main(int argc, char ** argv) {
 		// Update the previous frame
 		frame.copyTo(previous);
 
-		// Update for the first thame the previous frame
-		//if (previous.empty())
-		//	frame.copyTo(previous);
-
 		// Print everything on screen
 		namedWindow("Threshold",WINDOW_NORMAL);
 		resizeWindow("Threshold", 600, 600);
@@ -204,11 +203,13 @@ int main(int argc, char ** argv) {
 		{
 			if (!h.is_disappeared())
 			{
-				// Print the value for this frame
-				output << frame_counter
-					   << "," << h.get_id()
-					   << "," << h.get_current_position().x
-					   << "," << h.get_current_position().y << endl;
+				if (h.get_id() == selected_one && selected_one != -1) {
+					// Print the value for this frame
+					output << frame_counter
+						   << "," << h.get_id()
+						   << "," << h.get_current_position().x
+						   << "," << h.get_current_position().y << endl;
+				}
 			}
 		}
 
