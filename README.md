@@ -37,10 +37,10 @@ To see the algorithm in action, the base procedure is the following
 ```bash
 cd tracking_people
 cd build
-./tracking_people -f ../data/A1_assignment/A1_test.mp4 -alg kalman
+./tracking_people ../data/A1_test.mp4 kalman
 ```
 If one wants to run the procedure by just using the simple region-based algorithm, then he needs to
-change the `-alg` value from `kalman` to `simple`.
+change the algorithm value from `kalman` to `simple`.
 
 ## Documentation
 
