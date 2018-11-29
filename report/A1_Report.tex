@@ -8,6 +8,7 @@
 \usepackage[strings]{underscore}
 \usepackage{algorithm}
 \usepackage{cite}
+\usepackage{url}
 \usepackage{algpseudocode}
 
 \renewcommand{\algorithmiccomment}[1]{// #1}
@@ -17,7 +18,7 @@
 %
 % If you use the hyperref package, please uncomment the following line
 % to display URLs in blue roman font according to Springer's eBook style:
-% \renewcommand\UrlFont{\color{blue}\rmfamily}
+%\renewcommand\UrlFont{\color{blue}\rmfamily}
 
 \usepackage[caption=false,font=normalsize,labelfon
 t=sf,textfont=sf]{subfig}
@@ -41,69 +42,157 @@ t=sf,textfont=sf]{subfig}
 \maketitle              % typeset the header of the contribution
 %
 \begin{abstract}
-Detecting and tracking motion is one of the most common computer vision's tasks. Despite its apparent simplicity, this topic presents several tought spots and unexpected challenges which can be difficult to overcome. This work shows a simple and fast region-based approach to perform motion detection and subsequent tracking with a good grade of accuracy. Successively, a more advanced model based on the Kalman Filter is proposed in order to overcome some limitation of the first solution. These solutions are then tested on a pedestrian tracking task. Finally, we discuss the performance and the shortcomings of these two methods. 
+Detecting and tracking motion is one of the most common computer vision's tasks. Despite its apparent simplicity, this topic presents several tough spots and unexpected challenges which can be difficult to overcome. In our work, we describe a simple and fast region-based approach to perform motion detection and subsequent object tracking with a good grade of accuracy. Successively, a more advanced model based on the Kalman Filter is proposed in order to overcome some limitation of the first procedure. These solutions are then applied to a pedestrian tracking task. Finally, we discuss the performance and the shortcomings of these two methods.
 
-\keywords{Tracking \and Detection  \and MOG \and Background Subtraction \and Kalman Filter \and OpenCV}
+\keywords{Tracking \and Detection  \and Mixture of Gaussians \and Background Subtraction \and Kalman Filter \and OpenCV}
 \end{abstract}
 %
 %
 %
 \section{Introduction}
-Detection of moving objects and their subsequent tracking is a relatively easy task for humans. However, this operation becomes much more complicated when dealing with a computer video system. Recognize and follow passing objects by just looking at video recordings is incredibly useful for many real-world applications: surveillance systems, autonomous vehicles, crowds monitoring etc. The objective of this work is to produce a simple tracking system which is both accurate and with a relatively fast execution speed. Firstly, we tried to devise a procedure in order to detect motion in a reliable way, by applying background subtraction techniques. Secondly, we defined two methods to do dynamic tracking of detected objects by means of a region-based approach and of a more sophisticated solution which employ the Kalman filter.
-This paper is structured in 4 main parts. Section 2 describes some related works on this topic and papers that were consulted for this work. Section 3 describes the chosen methods used to tackle the issue, from the objects detection (Mixture of Gaussians) to the tracking (region-based and Kalman-aided approaches). Section 4 describes the settings and results of the experiments done with our implementation. Finally, Section 5 elaborates the results of the experiments and we try to reach some conclusions.
+Humans are really good at detecting and tracking objects while they move in a scene. However, this operation becomes much more complicated when achieved through a computer video system. Despite the difficulties to automatize such procedure, recognize and follow passing objects by just looking at video recordings is an incredibly useful feature for many real-world applications (e.g. surveillance systems, autonomous vehicles, crowds monitoring etc). Here we present a simple tracking system to detect and count moving objects, given a video recording, which is both computationally inexpensive and sufficiently accurate.  We devised a procedure in order to detect motion in a reliable way, by applying background subtraction and shadow removal techniques. We then defined two methods to do dynamic tracking of detected targets by means of a region-based approach and of a more sophisticated Kalman-aided solution. Finally, we run some experiments on a computer-generated video recording of pedestrians moving in a scene. We registered for each video frame the number of pedestrians present in the scene and we also recorded the trajectories of three selected pedestrians. These values were confronted with the ground truth information used to generate the video in order to measure the accuracy of our architecture. 
+The paper is structured in 4 main sections: Section 2 describes the conducted literature investigation displaying some related works on these topics. Section 3 outlines in detail the chosen methods used to solve the issue, from the objects detection (Mixture of Gaussians) to the tracking (region-based and Kalman-aided approaches). Section 4 describes the experimental settings and the results of the analyses done on our implementation with the test video. Finally, Section 5 elaborates the results of the experiments and we try to reach some final conclusions and possible future improvements.
 
 \section{Related Works}
-Firstly, we searched the literature in order to find suitable methods and techniques that are usually applied to these tasks.
-Several papers regarding background subtraction for motion detection were published in previous years. Simple techniques such as frame differencing and adaptive background subtraction can be used if the scene presents fixed illumination and no background noise. Mixture of Gaussians (MOG) models are used in order to model complex, non-static backgrounds \cite{mog}. The MOG models went under extensive studies in order to increase their capabilities (for instance, \cite{mog_improved} shows how to extend them in order to do shadows detection). However, MOG still presents several shortcomings (sensible to the adaptation rate, performance depends on the number of Gaussians employed etc.) and therefore other more advanced methods were devised \cite{bg_codebook, bg_fuzzy, van2014vibe}. Shadows detection and removal was also a topic of several papers in which different techniques were proposed. For instance, HSV colour space conversion \cite{cucchiara2001detecting}, chromaticity and gradient correlation \cite{sanin2010detecting} etc.  
-Object (people) tracking was discussed in many works. Many different methods are employed. From using Neural Networks to detect the human shape (or to generate crowd count from images)\cite{tang2017multiple, zhang2016single} to feature-based or region-based approaches \cite{5597093}. Researchers tried also to fuse together multiple algorithms in order to achieve stronger and more reliable predictors \cite{10.1007/3-540-47979-1_25}. Some papers discussed also how to recover from partial or total occlusions \cite{LERDSUDWICHAI20051059}.
+As the first step, we searched the literature in order to document ourselves about suitable methods and techniques that are usually applied to accomplish these tasks. We started from the motion detection.
+Several papers regarding background subtraction were published in previous years. Simple techniques such as frame differencing and adaptive background subtraction can be used if the scene presents fixed illumination and no background noise. Usually, Mixture of Gaussians (MOG) models are preferred, since they can to model complex, non-static backgrounds \cite{mog}. Because of this, MOG models went under extensive studies in order to increase their capabilities (for instance, \cite{mog_improved} shows how to extend them in order to do shadows detection). However, MOG still presents several shortcomings (sensible to the adaptation rate, performance depends on the number of Gaussians employed etc.) and therefore other more advanced techniques were devised \cite{bg_codebook, bg_fuzzy, van2014vibe}. Shadows detection and removal was also a topic of several papers in which different techniques were proposed. For instance, HSV colour space conversion \cite{cucchiara2001detecting} or chromaticity and gradient correlation \cite{sanin2010detecting}.  
+In order to do object (people) tracking, many different methods are employed. From using Neural Networks to detect the human shape (or to generate crowd count from images)\cite{tang2017multiple, zhang2016single} to feature-based or region-based approaches \cite{5597093}. Researchers tried also to fuse together multiple algorithms in order to achieve stronger and more reliable predictors \cite{10.1007/3-540-47979-1_25}. Finally, some papers discussed also how to recover from partial or total occlusions \cite{LERDSUDWICHAI20051059}, which represents one the biggest problem of object tracking.
 
 \section{Methods}
 
-The detection/tracking process was divided into several steps, each of them dealing with a specific issue/task. Moreover, the procedure was devised in order to use simple algorithms such that to provide a relatively easy-to-use system that requires a moderate computational power in order to be applied to real-time systems. The processing pipeline works as follow:
+The detection/tracking process was divided into several steps, each of them dealing with a specific issue/task, in order to deliver a modular infrastrcture. The processing pipeline phases are the following:
 \begin{enumerate}
-\item Shadow removal and Background Subtraction;
-\item Feature extraction from the selected contours (centroids+histogram);
-\item Prediction of their position/motion by using a region-based approach and a Kalman-aided approach;
+\item Shadow Removal and Background Subtraction;
+\item Extraction of contours and associated histograms;
+\item Object Tracking by using a Region-Based approach and a Kalman-aided approach;
 \end{enumerate}
-The implementation was done using C++ and the OpenCV library (release 2.4.13).
+The complete implementation was done using C++ and the OpenCV library (release 2.4.13)\cite{itseez2015opencv}.
+
+
+\begin{figure}
+\centering
+\subfloat[Background subtraction without HSV shadow removal.]{\includegraphics[width=0.49\linewidth]{./images/shadows_300_no_removal.png}\label{tracknos}}
+\hspace{0.01\linewidth}%
+\subfloat[Background subtraction with HSV shadow removal.]{\includegraphics[width=0.49\linewidth]{./images/shadows_300.png}\label{tracks}}
+\caption{Figure (a) shows the result of the background subtraction without the HSV conversion. We clearly see that the image
+is more noisy and provide much more segmentation than Figure (b).}
+\label{object_detection}
+\end{figure}
 
 \subsection{Background Subtraction}
-For each frame of the given video, the motion detection was performed using a Mixture of Gaussians technique described in the paper by Zivkovic \cite{Mog} in order to do background subtraction (this is implemented as \texttt{BackgroundSubtractorMOG2}\cite{backgroundsubtractormog} inside OpenCV). This technique was used in order to provide a more robust and precise detector. In fact, it can easily absorb eventual sudden changes in the environment (for instance, illumination variations). The result of this procedure is a greyscale image, in which the moving areas are displayed as white ``blobs" (Figure \ref{object_detection_result} shows the result of the entire processing pipeline on a video frame).
+For each frame of the given video, the motion detection was performed using a Mixture of Gaussians technique described in the paper by Zivkovic \cite{mog} in order to do background subtraction (this is implemented as \texttt{BackgroundSubtractorMOG2}\cite{backgroundsubtractormog} inside OpenCV). This technique was used in order to provide a more robust and precise detector. In fact, it can easily absorb eventual sudden changes in the environment (for instance, illumination variations). The result of this procedure is a greyscale image, in which the moving areas are displayed as white ``blobs" (Figure \ref{object_detection_result} shows the result of the entire processing pipeline on a video frame).
 \smallskip
 
 In order to avoid wrong motion detection caused by shadows cast by moving objects, each frame was also first converted from the RGB to the HSV space. Then, the hue (H) channel was extracted and the other components were discarded. This enabled us to remove eventual luminance variations which could have caused false positives.
 This conversion proved itself to be most useful because it improved the quality of the motion detection. Figure \ref{object_detection} compares the result of this procedure when applying or not the HSV conversion.
-The MOG method described in the paper is also able to detect shadows, which are highlighted in a different colour (a light grey). These were also removed by applying a binary thresholding. This shadow removal procedure produced a binary image in which the blobs are represented as white areas. 
-Finally,  a sequence of opening and dilating operators with a rectangular shaped structuring element was then applied in order to remove the eventual noise, fill eventual holes and, more generally, to improve the blobs shapes.
+The MOG method used is also able to detect shadows, which are highlighted in a different colour (a light grey). These were also removed by applying a binary thresholding. This shadow removal procedure generated a binary image in which the blobs were represented as white areas. 
+Finally, a sequence of opening and dilating operators with a rectangular shaped structuring element was then applied in order to remove the eventual noise and, more generally, to improve the blobs shapes.
 \smallskip
 
+\begin{figure}
+%\subfloat[People detection without HSV shadow removal.]{\includegraphics[width=\linewidth]{./images/detection_300_no_removal.png}\label{detect_no_s}}
+%\hfill
+%\subfloat[People detection with HSV shadow removal]{}\label{detect_s}}
+\includegraphics[width=\linewidth]{./images/detection_300.png}
+\caption{This figure shows the results of the motion detection algorithm on a single frame of the video. Here the found contours (white) and bounding boxes (red) were applied to the original frame. On the top left corner, we can see the people counter.}
+\label{object_detection_result}
+\end{figure}
+
 \subsection{Contours Extaction}
-As a second step, we applied a procedure to extract the contours from the binary frame containing the previously detected blobs (we used the OpenCV \texttt{findContours} \cite{findcontours} method). We filtered also the contours in order to reduce eventual noise by selecting only those which had an area above an empirical threshold. The threshold was selected in order to maximize the number of pedestrians found and to minimize the false positive (for instance, the detection of small parts of these pedestrians).  For each of these filtered contours, we generated also their corresponding bounding boxes.
+As a second step, we applied a procedure to extract the contours from the binary frame containing the previously detected blobs (we used the OpenCV \texttt{findContours} \cite{findcontours} method). We filtered also the contours in order to reduce eventual noise by selecting only those which had an area above an empirical-measured threshold. The threshold was selected in order to maximize the number of pedestrians found and to minimize the false positive (for instance, the detection of small parts of these pedestrians).  For each of these filtered contours, we computed also their histogram signature and we generated also their corresponding bounding boxes (for visualization purposes only).
 
-We also recorded and provided the number of pedestrians detected for each frame of the video. 
+As an additional output of the procedure, we also recorded and provided the number of blobs detected for each frame of the video. 
 
-\subsection{Region-Based People Tracking}
+\subsection{Region-Based Object Tracking}
 
-The object tracking was done using a region-based approach. Once detected in timestep t, the blobs detected on timestep t+1 are associated with the previous ones on thanks to the background subtraction, a proximity basis by also looking at the histogram information. More specifically, we check the distance between the blobs' centroids and the correlation coefficient of the histograms. Given two blobs, if those two metrics are below or above certain thresholds (again, the thresholds were chosen empirically by taking the ones which held the best results) then the blobs are considered to be the same and then they are associated. The association between the new blobs and the ``old" one is based on the best matching. The pedestrian that is closer to the newly detected blobs will win.After each association, each of the detected blobs' features is also updated (the new position is saved and a new histogram is computed) in order to account for possible small variations.
+The object tracking was done using a simple region-based approach. The procedure is the following. We first defined three sets: $C(t)$, the set of contours detected at frame $t$ through MOG, $O(t)$, the set of current tracked objects at frame $t$, and $D(t)$, the set of disappeared objects at frame $t$.
+\smallskip
 
-If we were not able to assign a specific blob to a previously detected human, it means that it could be a new pedestrian entering the scene. Therefore, we add it as a new human. To account for possible wrong detection, we start to track a newly detected blob only if it is closer to one of the borders of the scene frame (again, the distance has to be lower than a threshold). If a blob appears near one of the frame's border, we are reasonably sure that it is a new pedestrian entering the scene, while if it appears in the middle of the image, then it is unlikely to be a new human.
+At $t=1$,  we set $O(t)=C(t)$. This means that all the newly detected contours are added to the set of objects we need to keep track of.
+\smallskip
 
-Moreover, if a pedestrian did not found any suitable next blob from the detected ones, it is marked as missing. If a tracked human stays missing for more than a certain amount of frames then it is considered to have exited the scene and it is not tracked anymore.
+At frame $t>1$, the position of objects inside $O(t)\backslash D(t)$ is updated by searching inside $C(t+1)$ a contour that closely resembles one of the tracked objects $o$. The association between an object $o \in O(t)\backslash D(t)$ and a contour $c \in C(t+1)$ is based on a proximity basis and by also looking at the histogram signatures. More specifically, we check if the Euclidean distance between the centroids of $o$ and $c$ is below a certain threshold and again if the correlation coefficient of their histograms is above a certain threshold. The thresholds were chosen empirically by taking the values which held the best experimental results. It is important to note that a contour $c$ is assigned just to the closest object $o$ (best matching). After each association, the centroid and histogram of $o$ are updated with the values of its matched $c$ (this is especially useful to account for small colour variation of the new contour).
+\smallskip
 
-Algorithm \ref{tracking_algo} shows the general procedure. Note that the algorithm pseudocode presented here misses some small improvements or general logging facilities (like recording the trace for each tracked human for visualization purposes, etc.).
-For more detailed informations please check the source code provided.
+If we were not able to find a matching object $o$ for a contour $c$, it means that $c$ could be a new trackable object entering the scene. To account for possible wrong detection, we start to track a new contour $c \in C(t+1)$ only if it is closer to one of the borders of the scene frame (again, we check that the Euclidean distance between the $c$'s centroid and the frame border is lower than a threshold). If a contour $c$ appears near one of the frame's borders, we are reasonably sure that it is a new object entering the scene. Therefore, we add $c$ to $O(t+1)$.
+\smallskip
 
-\subsection{Kalman-aided People Tracking}
+Moreover, if an object $o \in O(t)\backslash D(t)$ did not found any suitable next contour $c \in C(t+1)$, it is marked as missing. If a tracked object $o$ stays missing for more than a certain amount of frames then it is considered to have exited the scene and it is not tracked anymore (it is added to $D(t+1)$).
+\smallskip
 
-Together with the simple solution described above, a more sophisticated method was tried in order to increase the quality of the tracking. The second approach consisted of using a Kalman filter (one personalized for each human detected) to predict the next position of the tracked pedestrian. The blob association procedure remained the same, but it was done against these new predicted positions, instead of the previous position. Once an association is made, the Kalman estimate is then corrected with the new ``measurement" and the pedestrian position is updated accordingly.
+Algorithm \ref{tracking_algo} shows the simple region-based procedure. Note that the algorithm pseudocode presented here misses some small improvements or general logging facilities (like recording the trace for each tracked human for visualization purposes, etc.).
+For more detailed information please check the source code provided and its documentation.
 
+\begin{figure}[t]
+\includegraphics[width=\linewidth]{./images/tracking.png}
+\caption{This figure shows the results of the Kalman-aided tracking algorithm on a single frame of the video. Here the trajectories and the ids of the tracked object are displayed on the original frame. We can already see some issues with the tracking procedure. Two pedestrians in the middle of the scene are not tracked and the pedestrians with id 3 are considered just as one entity (because of merging issues).}
+\label{tracking}
+\end{figure}
+
+\subsection{Kalman-aided Object Tracking}
+
+Together with the simple solution described above, a more sophisticated method was tried in order to increase the quality of the tracking. The second approach consisted of using a Kalman filter (one personalized for each human detected) to predict the next position (centroid) at frame $t+1$ of all the tracked object $o \in O(t)\backslash D(t)$. The contour association procedure remained the same, but it was done by checking these newly predicted centroids, instead of the previous ones. Once an association between $o \in O(t)\backslash D(t)$ and $c \in C(t+1)$ is made, the Kalman estimate is then corrected with the new ``measurement" (the centroid of $c$) and the object position is updated accordingly.
+
+\begin{algorithm}
+\caption{Track objects given a set $C$ of contours.}
+\label{tracking_algo}
+\begin{algorithmic}[1]
+\Require current video frame $t$, new detected contours $C$, previously detected object $O$, disappeared objects $D$
+\State
+\If {$t == 1$} \Comment \textbf{Add all first detected contours as tracked object}
+\For{contour $c \in C$}
+\State Create a new object $o$ with a new $id$
+\State $o.position \gets c.centroid$
+\State $o.histogram \gets c.histogram$
+\State $o.disappeared \gets 0$
+\State $O.push\_back(o)$
+\EndFor
+\Else
+\For {contour $c \in C$} \Comment \textbf{Try to pair each contour with a tracked object}
+\State $winner\_object \gets null$
+\For {object $o \in O\backslash D$}
+\State $o.disappeared \gets o.disappeared+1;$
+\If {$correlation(o.histogram, c.histogram) > t\_h$}
+\If {$e\_distance(o.position, c.centroid) < t\_e$}
+\If {the new object $o$ is better than $O[winner\_object]$}
+\State $winner\_object \gets o.id$
+\EndIf
+\EndIf
+\EndIf
+\EndFor 
+\If {$winner\_object != null$} 
+\State \Comment \textbf{Update the features of the matched object.}
+\State $O[winner\_object].position \gets c.position $
+\State $O[winner\_object].histogram \gets c.histogram$
+\State $O[winner\_object].disappeared \gets 0$
+\Else
+\State \Comment \textbf{Add new object to track if it appeared near the borders.}
+\State $distance\_left \gets e\_distance(c.centroid, border\_left)$
+\State $distance\_right \gets e\_distance(c.centroid, border\_right)$
+\If {$ distance\_left < t\_b$ or $ distance\_right < t\_b$}
+\State Create a new object $o$ with a new $id$
+\State $o.position \gets c.centroid$
+\State $o.histogram \gets c.histogram$
+\State $o.disappeared \gets 0$
+\State $O.push\_back(o)$
+\EndIf
+\EndIf
+\EndFor
+\For {humans $o \in O\backslash D$} \Comment \textbf{Stop to track disappeared objects.}
+\If {$o.disappeared \geq t\_d$}
+\State $D.push\_back(o)$
+\EndIf
+\EndFor
+\EndIf
+\end{algorithmic}
+\end{algorithm}
 
 \section{Experiments}
 
 \subsection{Settings}
-Some experiments were conducted in order to find the best initialization parameters such that to have optimal detection and tracking capabilities. Table X shows the adopted configuration. 
+Some experiments were conducted in order to find the best initialization parameters and thresholds such that to have optimal detection and tracking capabilities. Table \ref{table:params} shows the adopted final configuration. 
 
-The system used to run the experiments was an Ubuntu 16.04 virtual machine (it was executed through the Virtualbox appliance), with a single processor and 2 GB of RAM. The algorithm was also configured in order to do the tracking and detection for each frame of the video.
+The system used to run the experiments was an Ubuntu 16.04 virtual machine (it was executed through the 5.2.22 version of the Virtualbox appliance), with a 1.8 GHz single processor and 2 GB of RAM. The algorithm was also configured in order to do the tracking and detection for each frame of the video.
 
 \begin{table}[h]
 \centering
@@ -113,9 +202,9 @@ The system used to run the experiments was an Ubuntu 16.04 virtual machine (it w
 \hline
 \textbf{Parameter} & \textbf{Description}                                                    & \textbf{Value} \\ \hline
 \textit{t\_h}      & Threshold for the histogram correlation coefficient.                    & 0.5            \\
-\textit{t\_e}      & Threshold for the euclidean distance difference between blobs.          & 40             \\
-\textit{t\_b}      & Threshold for the border distance                                       & 30             \\
-\textit{t\_d}      & Disappearence rate after which a human is not tracked anymore (frames). & 200            \\ \hline
+\textit{t\_e}      & Threshold for the euclidean distance difference between contours.       & 40             \\
+\textit{t\_b}      & Threshold for the euclidean distance difference between the border and a contour.& 30             \\
+\textit{t\_d}      & Disappearence rate after which an object $o$ is not tracked anymore (n. of frames). & 200            \\ \hline
 \end{tabular}%
 }
 \label{table:params}
@@ -123,18 +212,22 @@ The system used to run the experiments was an Ubuntu 16.04 virtual machine (it w
 
 \subsection{Video Description}
 
-The video which we used to run our experiments was a computer-generated simulation of pedestrians entering and exiting the scene acquired from top view. The video used MPEG-4 format and it had a frame size of 1280x720. The original colour space was the YUV. The size of the entire video was about 12 MB on disk with a duration of 50,876 seconds (all these information were extracted by using the \texttt{mediainfo} bash command).
+The video which we used to run our experiments was a computer-generated simulation of pedestrians entering and exiting the scene acquired from top view. The video used MPEG-4 compression format and it had a frame size of 1280x720 pixels. The original video colour space was the YUV. The size of the entire video was about 12 MB on disk with a duration of 50,876 seconds (all these information were extracted by using the \texttt{mediainfo} bash command).
 
-All pedestrian moved in one direction only (without changing it) with almost constant velocity and the scene presented constant illumination. Apart from the pedestrian moving there was no other source of motion. 
+All pedestrian moved in one direction only (without changing it) with almost constant velocity. The scene presented constant illumination. Apart from moving pedestrians, there was no other source of motion or noise (like trees, water, birds, etc.).
 
 \subsection{Results}
-Generally, the entire procedure was relatively fast and was computationally efficient (we checked both CPU usage and memory consumption). The region-based approach was slightly faster than the Kalman-aided, but we noticed in both cases a minor slowdown when there were too many pedestrians on the scene. Figure X shows a sample frame of the video in which we see the tracking procedure working.
 
-We also computed also the Root Mean Square Error (RMSE) for the people counting task. In the case of the tracking, we took three pedestrians (10,36 and 42) and we compared their recorded trace with the ground truth by computing for each frame the distance of each predicted trajectory point from the real ones. We then computed the mean and the standard deviation.
+\textit{\textbf{Note: A complete video which displays the pedestrian counter and the tracjectories is available at this link:\\ https://drive.google.com/open?id=1NgB8z0o5mlLQfVUR7G9xDpf9cTA5UjNs}}
+\medskip
 
-The algorithm was able to discover successfully most of the pedestrian crossing the scene, the RMSE of the detected pedestrian number with respect to the ground truth is around $3.94$. 
-The tracking part gave instead very different results. The region-based approach performed well only in such situations in which the pedestrian is not occluded by too many other people. If that situation arises, then the trajectory is detected wrongly. Moreover, the performance over the detection of the selected pedestrians is somewhat poor. 
-The Kalman-aided procedure worked instead much better. For instance, the tracking performance over the selected pedestrians outperforms the one obtained with only the region-based approach. Table X shows the final results.
+Generally, the entire procedure was relatively fast and was computationally efficient (we checked both CPU usage and memory consumption). The region-based approach was slightly faster than the Kalman-aided, but we noticed in both cases a minor slowdown when there were too many pedestrians on the scene. Figure \ref{tracking} shows a sample frame of the video in which we see the tracking procedure working.
+
+We also computed the Root Mean Square Error (RMSE) for the people counting task. In the case of the tracking, we took three pedestrians (10,36 and 42) and we compared their recorded trace with the ground truth by computing for each frame the displacement of each predicted trajectory point from the real ones. We then computed the mean and the standard deviation of each trajectory.
+
+The background subtractor (MOG+HSV Shadow Removal) was able to discover successfully most of the pedestrian crossing the scene, the RMSE of the detected pedestrian number with respect to the ground truth is around $3.94$. 
+The tracking part gave instead very different results. The region-based approach performed well only in such situations in which the pedestrians are not occluded by too many other people. If that situation arises, then the trajectory is detected wrongly (there are occlusion issues in which the contours $c \in C(t+1)$ are assigned to the wrong object $o \in O(t)\backslash D(t)$. Moreover, the region-based approach performed badly over the detection of the selected pedestrians. 
+The Kalman-aided procedure produced instead much better. For instance, the tracking performance over the selected pedestrians outperforms the one obtained with only the region-based approach, by showing smaller displacement values and a smaller standard deviation. Table \ref{table:disp} shows the final results.
 
 \begin{table}[]
 \centering
@@ -155,10 +248,10 @@ The Kalman-aided procedure worked instead much better. For instance, the trackin
 
 \section{Conclusions}
 
-The previous experiment showed us that we can easily build a detection/tracking system which can give us modest performances without employing cutting-edge hardware or software. However, our method presents several pitfalls which can be hardly solved completely. For instance, the background subtraction is not able to detect all the moving pedestrians and it suffers also of splitting events (in which a pedestrian is identified not as a complete entity, but maybe only by its torso and legs, which are two separate blobs). 
- The tracking part is the one which requires the most care. In fact, one issue of our proposed methods was that they cannot discriminate object in presence of occlusions. When two blobs merge together it becomes difficult to distinguish between them and to predict their next position, even if we consider the histogram information. One common solution to this problem is to avoid to update the model during occlusions. The objects positions are refreshed periodically only after a certain amount of frames. This will enable us to postpone the decision to a later frame when the blobs (hopefully) will have divided themselves.
-The performance could be improved by using more sophisticated methods. 
-By selecting other features rather than blob's centroids and histograms we may be able to improve the accuracy of the tracking phase. Template-based approaches could also be used, since if we wanted to track only human, then we would be better of by implementing a system which detects all the moving objects which have a ``human" shape.
+The previous experiments showed that we can easily build a detection/tracking system which can give us modest performances without employing cutting-edge hardware or software. Moreover, the procedure is completely agnostic regarding the objects we want to track and could be easily extended to filter out the non-wanted components (for instance, by using an SVM to discriminate if a contour $c$ detected represents a certain ``object" of interest: a human being, an animal, a car etc.) However, our method presents several pitfalls which can be hardly solved completely by simply tuning the various thresholds defined previously. For instance, the background subtraction is not able to detect all the moving pedestrians and it produces sometimes wrong detections (mainly caused by splitting and merging problems).
+Nevertheless, the tracking part is the one which requires the most care. One main issue of our proposed methods is that they cannot discriminate objects in presence of occlusions. When two blobs merge together it becomes difficult to distinguish between them and to predict their next position, even if we consider the histogram information. One common solution to this problem is to avoid to update the model during occlusions. The objects positions are refreshed periodically only after $n$ frames so that the associations are done only at frame $t+n$, $t+2n$ and so on. This will enable us to postpone the decision at a time when the blobs (hopefully) will have divided themselves.
+By selecting other features rather than contours' centroids and histograms we may be able to improve the accuracy of the tracking phase. Template-based approaches could also be used, since if we wanted to track only human, then we would be better of by implementing a system which detects all the moving objects which have features resembling a human (head, torso, legs, etc.).
+In conclusion, the results obtained are satisfactory enough for our simulated setting, but they could be greatly improved by using more sophisticated methods. Moreover, we did not try our implementation on a real-world recording, therefore we are not able to define how our implementation would behave in a real setting with a noise scene (illumination variation, noise, non-linear object movements etc.). 
 
 %
 % the environments 'definition', 'lemma', 'proposition', 'corollary',
@@ -204,86 +297,5 @@ By selecting other features rather than blob's centroids and histograms we may b
 %Oct 2017
 %\end{thebibliography}
 
-\section*{Appendix}
 
-\begin{figure}
-\centering
-\subfloat[Background subtraction without HSV shadow removal.]{\includegraphics[width=0.49\linewidth]{./images/shadows_300_no_removal.png}\label{tracknos}}
-\hspace{0.01\linewidth}%
-\subfloat[Background subtraction with HSV shadow removal.]{\includegraphics[width=0.49\linewidth]{./images/shadows_300.png}\label{tracks}}
-\caption{Figure (a) shows the result of the background subtraction without the HSV conversion. We clearly see that the image
-is more noisy and provide much more segmentation than Figure (b).}
-\label{object_detection}
-\end{figure}
-
-\begin{figure}
-%\subfloat[People detection without HSV shadow removal.]{\includegraphics[width=\linewidth]{./images/detection_300_no_removal.png}\label{detect_no_s}}
-%\hfill
-%\subfloat[People detection with HSV shadow removal]{}\label{detect_s}}
-\includegraphics[width=\linewidth]{./images/detection_300.png}
-\caption{This figure shows the results of the motion detection algorithm on a single frame of the video. Here the found contours (white) and bounding boxes (red) were applied to the original frame. On the top left corner, we can see the people counter.}
-\label{object_detection_result}
-\end{figure}
-
-\begin{algorithm}
-\caption{Track pedestrians given a set $C$ of contours (Simple solution)}
-\label{tracking_algo}
-\begin{algorithmic}[1]
-\Require new detected contours $C$, previously detected pedestrians $P$, disappeared humans $D$
-\If {$P.size() == 0$}
-\State
-\For{contour $c \in C$}
-\State Create a new human $h$ with a new $id$
-\State $h.position \gets c.centroid$
-\State $h.histogram \gets c.histogram$
-\State $h.disappeared = 0$
-\State $P.push\_back(h)$
-\EndFor
-\Else
-\State 
-\For {contour $c \in C$}
-\State $winner\_human \gets null$
-\For {human $h \in P\backslash D$}
-\State $h.disappeared \gets h.disappeared+1;$
-\If {$correlation(h.histogram, c.histogram) > t\_h$}
-\If {$e\_distance(h.position, c.centroid) < t\_e$}
-\If {the new human $h$ is better than $winner\_human$}
-\State $winner\_human \gets h$
-\EndIf
-\EndIf
-\EndIf
-\EndFor
-\State 
-\If {we found a human $h$ for the contour $c$}
-\State $h.position \gets c.position $
-\State $h.histogram \gets c.histogram$
-\State $h.disappeared = 0$
-\Else
-\State $distance\_left \gets e\_distance(c.centroid, border\_left)$
-\State $distance\_right \gets e\_distance(c.centroid, border\_right)$
-\If {$ distance\_left < t\_b$ or $ distance\_right < t\_b$}
-\State Create a new human $h$ with a new $id$
-\State $h.position \gets c.centroid$
-\State $h.histogram \gets c.histogram$
-\State $h.disappeared \gets 0$
-\State $P.push\_back(h)$
-\EndIf
-\EndIf
-\EndFor
-\State
-\For {humans $h \in P\backslash D$}
-\If {$h.disappeared \geq t\_d$}
-\State $D.push\_back(h)$
-\EndIf
-\EndFor
-\EndIf
-\end{algorithmic}
-\end{algorithm}
-
-\begin{figure}
-\includegraphics[width=\linewidth]{./images/tracking.png}
-\caption{This figure shows the results of the motion detection algorithm on a single frame of the video. Here the found contours (white) and bounding boxes (red) were applied to the original frame. On the top left corner, we can see the people counter.}
-\label{tracking}
-
-\end{figure}
 \end{document}
