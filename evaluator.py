@@ -22,7 +22,7 @@ if (len(sys.argv) == 1):
 dtypes = {"frame": np.int32, "id": np.int32, "x":np.float64, "y":np.float64}
 
 # Read the ground truth file
-gt = pd.read_csv("./data/A1_assignment/A1_groundtruthC.txt", header=None, names=["frame", "id", "x", "y"], index_col=["frame"], dtype=dtypes)
+gt = pd.read_csv("./data/A1_groundtruthC.txt", header=None, names=["frame", "id", "x", "y"], index_col=["frame"], dtype=dtypes)
 
 # Users we want to track
 users = [10, 36, 42]
