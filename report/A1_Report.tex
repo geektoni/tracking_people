@@ -7,6 +7,7 @@
 \usepackage{graphicx}
 \usepackage[strings]{underscore}
 \usepackage{algorithm}
+\usepackage{cite}
 \usepackage{algpseudocode}
 
 \renewcommand{\algorithmiccomment}[1]{// #1}
@@ -52,6 +53,9 @@ Detection of moving objects and their subsequent tracking is a relatively easy t
 This paper is structured in 4 main parts. Section 2 describes some related works on this topic and papers that were consulted for this work. Section 3 describes the chosen methods used to tackle the issue, from the objects detection (Mixture of Gaussians) to the tracking (region-based and Kalman-aided approaches). Section 4 describes the settings and results of the experiments done with our implementation. Finally, Section 5 elaborates the results of the experiments and we try to reach some conclusions.
 
 \section{Related Works}
+Firstly, we searched the literature in order to find suitable methods and techniques that are usually applied to these tasks.
+Several papers regarding background subtraction for motion detection were published in previous years. Simple techniques such as frame differencing and adaptive background subtraction can be used if the scene presents fixed illumination and no background noise. Mixture of Gaussians (MOG) models are used in order to model complex, non-static backgrounds \cite{mog}. The MOG models went under extensive studies in order to increase their capabilities (for instance, \cite{mog_improved} shows how to extend them in order to do shadows detection). However, MOG still presents several shortcomings (sensible to the adaptation rate, performance depends on the number of Gaussians employed etc.) and therefore other more advanced methods were devised \cite{bg_codebook, bg_fuzzy, van2014vibe}. Shadows detection and removal was also a topic of several papers in which different techniques were proposed. For instance, HSV colour space conversion \cite{cucchiara2001detecting}, chromaticity and gradient correlation \cite{sanin2010detecting} etc.  
+Object (people) tracking was discussed in many works. Many different methods are employed. From using Neural Networks to detect the human shape (or to generate crowd count from images)\cite{tang2017multiple, zhang2016single} to feature-based or region-based approaches \cite{5597093}. Researchers tried also to fuse together multiple algorithms in order to achieve stronger and more reliable predictors \cite{10.1007/3-540-47979-1_25}. Some papers discussed also how to recover from partial or total occlusions \cite{LERDSUDWICHAI20051059}.
 
 \section{Methods}
 
@@ -78,13 +82,6 @@ As a second step, we applied a procedure to extract the contours from the binary
 
 We also recorded and provided the number of pedestrians detected for each frame of the video. 
 
-% Conversion from RGB to HSV
-% Selection of the H plane
-% Mog
-
-% Feature used (centroids of contours)
-% Histogram of the contours
-% Kalman Filter
 \subsection{Region-Based People Tracking}
 
 The object tracking was done using a region-based approach. Once detected in timestep t, the blobs detected on timestep t+1 are associated with the previous ones on thanks to the background subtraction, a proximity basis by also looking at the histogram information. More specifically, we check the distance between the blobs' centroids and the correlation coefficient of the histograms. Given two blobs, if those two metrics are below or above certain thresholds (again, the thresholds were chosen empirically by taking the ones which held the best results) then the blobs are considered to be the same and then they are associated. The association between the new blobs and the ``old" one is based on the best matching. The pedestrian that is closer to the newly detected blobs will win.After each association, each of the detected blobs' features is also updated (the new position is saved and a new histogram is computed) in order to account for possible small variations.
