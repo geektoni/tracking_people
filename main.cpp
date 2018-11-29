@@ -16,41 +16,42 @@
 using namespace cv;
 using namespace std;
 
-const char * keys = "{h | help | | Print this message.}"
-		"{f |file| . | Path to the video that has to be analyzed.}"
-		"{a |alg| kalman | Which tracking algorithm will be used, can be 'opticalflow', 'kalman', 'simple'. Default is 'kalman'.}"
-		"{s|start | 1 | Start to track/detect objects only from a specific frame. Default is 1.}"
-		"{sh|remove_shadow | true | Choose if we want to remove shadow with HSV or just use MOG2 capabilities.}"
-		"{save | save_frame | -1 | Save the frame specified by the number to disk.}"
-		"{u | user | -1 | Save tracking data only for this specific user.}";
-
 int main(int argc, char ** argv) {
 
-	// Intialize the command line parser
-	CommandLineParser parser(argc, argv, keys);
+	if (argc > 4 || argc < 3)
+	{
+		cout << "Wrong number of parameter supplied!" << endl;
+		cout << "Usage: tracking_people <path_to_video_file> <tracking_algorithm> [<disable_shadow_removal>]" << endl;
+		cout << "The <tracking_algorithm> can be 'simple' or 'kalman'. The <disable_shadow_removal> is optional." << endl;
+		exit(-1);
+	}
 
 	// Get the path to the video file
-	string video_path = parser.get<string>("f");
+	string video_path(argv[1]);
 
 	// Get the starting frame
-	int starting_frame = parser.get<int>("start");
+	int starting_frame = 1;
 
 	// Get which algorithm we want to use
-	string track_algo = parser.get<string>("alg");
+	string track_algo(argv[2]);
 
 	// Remove the shadows using HSV
-	bool remove_shadow = parser.get<bool>("remove_shadow");
+	bool remove_shadow = true;
+	if (argc == 4)
+		if (strcmp(argv[3], "false") == 0)
+			remove_shadow = false;
 
 	// Which frame need to be saved
-	int save_frame = parser.get<int>("save_frame");
+	int save_frame = -1;
 
-	int selected_one = parser.get<int>("user");
+	// Selected user that needs to be recorder
+	int selected_one = -1;
 
 	// Open the video and check if it is correct
 	// otherwise return with an error.
 	VideoCapture video(video_path);
 	if (!video.isOpened()) {
-		delete keys;
+		cout << "Error opening the video file!" << endl;
 		return -1;
 	}
 
@@ -226,9 +227,6 @@ int main(int argc, char ** argv) {
 
 	// Close the file
 	output.close();
-
-	// Free the pointer
-	delete keys;
 
 	return 0;
 }

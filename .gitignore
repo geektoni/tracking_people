@@ -97,3 +97,5 @@ report/*
 !report/biblio.bib
 
 doc
+
+*.avi
