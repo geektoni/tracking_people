@@ -45,10 +45,10 @@ int exists(int id)
 int main(int argc, char * * argv) {
 
 	// Open the video
-	VideoCapture cap("../data/A1_assignment/A1_test.mp4");
+	VideoCapture cap("../data/A1_test.mp4");
 
 	// Open the ground truth file
-	std::ifstream gt("../data/A1_assignment/A1_groundtruthC.txt");
+	std::ifstream gt("../data/A1_groundtruthC.txt");
 
 	// check if the file was opened
 	if (!gt.is_open()) {
