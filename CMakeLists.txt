@@ -1,7 +1,16 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 2.8)
 project(tracking_people)
 
-set(CMAKE_CXX_STANDARD 11)
+# Fix in order to make it compatible also with older version
+# of CMake.
+if (CMAKE_VERSION VERSION_LESS "3.1")
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+    endif
+  else
+    set(CMAKE_CXX_STANDARD 11)
+endif
+
 set(OPENCV_LIBRARIES opencv_highgui opencv_core opencv_imgproc opencv_video)
 
 include_directories("/usr/local/include")
