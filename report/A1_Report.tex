@@ -31,7 +31,7 @@ t=sf,textfont=sf]{subfig}
 % If the paper title is too long for the running head, you can set
 % an abbreviated paper title here
 %
-\author{Giovanni De Toni (197184)\inst{1}}
+\author{Giovanni De Toni (197814)\inst{1}}
 %
 %\authorrunning{F. Author et al.}
 % First names are abbreviated in the running head.
@@ -75,7 +75,7 @@ The complete implementation was done using C++ and the OpenCV library (release 2
 \hspace{0.01\linewidth}%
 \subfloat[Background subtraction with HSV shadow removal.]{\includegraphics[width=0.49\linewidth]{./images/shadows_300.png}\label{tracks}}
 \caption{Figure (a) shows the result of the background subtraction without the HSV conversion. We clearly see that the image
-is more noisy and provide much more segmentation than Figure (b).}
+is more noisy and the blob detection is less precise than Figure (b).}
 \label{object_detection}
 \end{figure}
 
@@ -192,7 +192,7 @@ Together with the simple solution described above, a more sophisticated method w
 \subsection{Settings}
 Some experiments were conducted in order to find the best initialization parameters and thresholds such that to have optimal detection and tracking capabilities. Table \ref{table:params} shows the adopted final configuration. 
 
-The system used to run the experiments was an Ubuntu 16.04 virtual machine (it was executed through the 5.2.22 version of the Virtualbox appliance), with a 1.8 GHz single processor and 2 GB of RAM. The algorithm was also configured in order to do the tracking and detection for each frame of the video.
+The system used to run the experiments was an Ubuntu 14.04 virtual machine (it was executed through the 5.2.22 version of the Virtualbox appliance), with a 1.8 GHz single processor and 2 GB of RAM. The algorithm was also configured in order to do the tracking and detection for each frame of the video.
 
 \begin{table}[h]
 \centering
@@ -201,9 +201,9 @@ The system used to run the experiments was an Ubuntu 16.04 virtual machine (it w
 \begin{tabular}{|l|l|l|}
 \hline
 \textbf{Parameter} & \textbf{Description}                                                    & \textbf{Value} \\ \hline
-\textit{t\_h}      & Threshold for the histogram correlation coefficient.                    & 0.5            \\
+\textit{t\_h}      & Threshold for the histogram correlation coefficient.                    & 0.2            \\
 \textit{t\_e}      & Threshold for the euclidean distance difference between contours.       & 40             \\
-\textit{t\_b}      & Threshold for the euclidean distance difference between the border and a contour.& 30             \\
+\textit{t\_b}      & Threshold for the euclidean distance difference between the border and a contour.& 20             \\
 \textit{t\_d}      & Disappearence rate after which an object $o$ is not tracked anymore (n. of frames). & 200            \\ \hline
 \end{tabular}%
 }
@@ -218,7 +218,7 @@ All pedestrian moved in one direction only (without changing it) with almost con
 
 \subsection{Results}
 
-\textit{\textbf{Note: A complete video which displays the pedestrian counter and the tracjectories is available at this link:\\ https://drive.google.com/open?id=1NgB8z0o5mlLQfVUR7G9xDpf9cTA5UjNs}}
+\textit{\textbf{Note: A complete video which displays the pedestrian counter and the trajectories is available at this link:\\ https://drive.google.com/open?id=1NgB8z0o5mlLQfVUR7G9xDpf9cTA5UjNs}}
 \medskip
 
 Generally, the entire procedure was relatively fast and was computationally efficient (we checked both CPU usage and memory consumption). The region-based approach was slightly faster than the Kalman-aided, but we noticed in both cases a minor slowdown when there were too many pedestrians on the scene. Figure \ref{tracking} shows a sample frame of the video in which we see the tracking procedure working.
