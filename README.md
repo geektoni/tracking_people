@@ -4,6 +4,9 @@ This repository contains the work done for the course of Computer Vision and Mul
 the University of Trento. We were asked to devise a system to count and track moving pedestrian
 in a given video acquired from top view.
 
+A more detailed technical report with also some experimental results can be viewed and downloaded
+[here](https://github.com/geektoni/tracking_people/blob/master/report/A1_Report.pdf).
+
 ## Install
 
 This project was tested on Ubuntu 16.04 and it requires OpenCV 2.4.13 in order to operate properly.
